@@ -29,7 +29,7 @@ END {
     while (length(rest) > 70) {
 	line = substr(rest,0,70);
 	print line
-	rest = " " substr(rest,71);
+	rest = " " substr(rest,70);
     }
     if (length(rest) > 0) {
 	print rest;
