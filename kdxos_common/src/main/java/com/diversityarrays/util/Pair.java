@@ -1,37 +1,20 @@
 /*
     KDXplore provides KDDart Data Exploration and Management
-    Copyright (C) 2015,2016  Diversity Arrays Technology, Pty Ltd.
-
+    Copyright (C) 2015,2016,2017  Diversity Arrays Technology, Pty Ltd.
+    
     KDXplore may be redistributed and may be modified under the terms
     of the GNU General Public License as published by the Free Software
     Foundation, either version 3 of the License, or (at your option)
     any later version.
-
+    
     KDXplore is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
-
+    
     You should have received a copy of the GNU General Public License
     along with KDXplore.  If not, see <http://www.gnu.org/licenses/>.
- */
-/*
- * dalclient library - provides utilities to assist in using KDDart-DAL servers
- * Copyright (C) 2015  Diversity Arrays Technology
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+*/
 package com.diversityarrays.util;
 
 import java.lang.reflect.Array;
@@ -96,31 +79,38 @@ public class Pair<A,B> {
 		this.second = b;
 		this.name = name;
 	}
-	
-	@Override
+
+    @Override
+    public String toString() {
+        return name;
+    }
+
+    @Override
+    public int hashCode() {
+        return (first == null ? 0 : first.hashCode())
+            ^
+                (second == null ? 0 : second.hashCode());
+    }
+
+    @Override
 	public boolean equals(Object o) {
 		if (o == this) return true;
 		if (! (o instanceof Pair)) return false;
-		
+
 		Pair<?,?> other = (Pair<?,?>) o;
 		Object oa = other.first;
 		Object ob = other.second;
-		
+
 		return (oa == null ? first == null : oa.equals(first))
 				&&
 				(ob == null ? second == null : ob.equals(second));
 	}
-	
-	@Override
-	public int hashCode() {
-		return (first == null ? 0 : first.hashCode())
-			^
-				(second == null ? 0 : second.hashCode());
-	}
-	
-	@Override
-	public String toString() {
-		return name;
-	}
-	
+
+    public A getFirst() {
+        return first;
+    }
+
+    public B getSecond() {
+        return second;
+    }
 }

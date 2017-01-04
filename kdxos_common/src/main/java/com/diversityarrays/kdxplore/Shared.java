@@ -1,20 +1,20 @@
 /*
     KDXplore provides KDDart Data Exploration and Management
-    Copyright (C) 2015,2016  Diversity Arrays Technology, Pty Ltd.
-
+    Copyright (C) 2015,2016,2017  Diversity Arrays Technology, Pty Ltd.
+    
     KDXplore may be redistributed and may be modified under the terms
     of the GNU General Public License as published by the Free Software
     Foundation, either version 3 of the License, or (at your option)
     any later version.
-
+    
     KDXplore is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
-
+    
     You should have received a copy of the GNU General Public License
     along with KDXplore.  If not, see <http://www.gnu.org/licenses/>.
- */
+*/
 package com.diversityarrays.kdxplore;
 
 import java.awt.Component;
@@ -204,9 +204,27 @@ public class Shared {
         public static final int VERBOSE = 99;
         public static final int DEBUG = Integer.MAX_VALUE;
 
-        public static Level LOGGING_LEVEL = Level.INFO;
+        private static Level LOGGING_LEVEL = Level.INFO;
+
+        static public void setLoggingLevel(Level level) {
+            LOGGING_LEVEL = level==null ? Level.FINE : level;
+            if (logger != null) {
+                logger.setLevel(LOGGING_LEVEL);
+            }
+        }
         
-        static public Logger logger;
+        private static Logger logger;
+        
+        static public void setLogger(Logger l) {
+            logger = l;
+            if (logger != null) {
+                logger.setLevel(LOGGING_LEVEL);
+            }
+        }
+        
+        public static Logger getLogger() {
+            return logger;
+        }
 
     //  public static boolean isLoggable(String tag, int level) {
 //          // TODO Auto-generated method stub
@@ -240,15 +258,14 @@ public class Shared {
         }
         
         static public void i(String tag, String message, Throwable t) {
-            if (LOGGING_LEVEL.intValue() <= Level.INFO.intValue()) {
+            if (logger != null) {
+                logger.log(Level.INFO, tag + '\t' + message, t);
+            }
+            else if (LOGGING_LEVEL.intValue() <= Level.INFO.intValue()) {
                 System.err.println("INFO:\t"+tag+'\t'+message); //$NON-NLS-1$
                 if (t != null) {
                     t.printStackTrace(System.err);
                 }
-            }
-            
-            if (logger != null) {
-                logger.log(Level.INFO, tag + '\t' + message, t);
             }
         }
 
@@ -257,15 +274,14 @@ public class Shared {
         }
         
         static public void e(String tag, String message, Throwable t) {
-            if (LOGGING_LEVEL.intValue() <= Level.SEVERE.intValue()) {
+            if (logger != null) {
+                logger.log(Level.SEVERE, tag + '\t' + message, t);
+            }
+            else if (LOGGING_LEVEL.intValue() <= Level.SEVERE.intValue()) {
                 System.err.println("ERROR:\t"+tag+'\t'+message); //$NON-NLS-1$
                 if (t != null) {
                     t.printStackTrace(System.err);
                 }
-            }
-            
-            if (logger != null) {
-                logger.log(Level.SEVERE, tag + '\t' + message, t);
             }
         }
 
@@ -274,26 +290,26 @@ public class Shared {
         }
 
         public static void d(String tag, String message, Throwable t) {
-            if (LOGGING_LEVEL.intValue() <= Level.FINEST.intValue()) {
+            if (logger != null) {
+                logger.log(Level.FINE, tag + '\t' + message, t);
+            }
+            else if (LOGGING_LEVEL.intValue() <= Level.FINEST.intValue()) {
                 System.err.println("DEBUG:\t"+tag+'\t'+message); //$NON-NLS-1$
                 if (t != null) {
                     t.printStackTrace(System.err);
                 }
             }
-            
-            if (logger != null) {
-                logger.log(Level.FINE, tag + '\t' + message, t);
-            }
         }
 
         public static void wtf(String tag, String message, Throwable t) {
-            System.err.println("WTF:\t"+tag+'\t'+message); //$NON-NLS-1$
-            if (t != null) {
-                t.printStackTrace(System.err);
-            }
-            
             if (logger != null) {
                 logger.log(Level.ALL, tag + '\t' + message, t);
+            }
+            else {
+                System.err.println("WTF:\t"+tag+'\t'+message); //$NON-NLS-1$
+            }
+            if (t != null) {
+                t.printStackTrace(System.err);
             }
         }
 
@@ -304,13 +320,13 @@ public class Shared {
 
 
         public static void v(String tag, String message) {
-            System.err.println("VERBOSE:\t"+tag+'\t'+message); //$NON-NLS-1$
-            
             if (logger != null) {
                 logger.log(Level.FINE, tag + '\t' + message);
             }
+            else {
+                System.err.println("VERBOSE:\t"+tag+'\t'+message); //$NON-NLS-1$
+            }
         }
-
     }
     
     /**

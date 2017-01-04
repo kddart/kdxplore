@@ -1,20 +1,20 @@
 /*
     KDXplore provides KDDart Data Exploration and Management
-    Copyright (C) 2015,2016  Diversity Arrays Technology, Pty Ltd.
-
+    Copyright (C) 2015,2016,2017  Diversity Arrays Technology, Pty Ltd.
+    
     KDXplore may be redistributed and may be modified under the terms
     of the GNU General Public License as published by the Free Software
     Foundation, either version 3 of the License, or (at your option)
     any later version.
-
+    
     KDXplore is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
-
+    
     You should have received a copy of the GNU General Public License
     along with KDXplore.  If not, see <http://www.gnu.org/licenses/>.
- */
+*/
 package com.diversityarrays.kdxplore.ui;
 
 import java.awt.Color;
@@ -29,8 +29,8 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.IntConsumer;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -86,7 +86,7 @@ public class HelpUtils {
     }
     
     static public String getHelpText(Class<?> resourceClass, String resourceName) {
-        String result = "Sorry - missing help resource: " + resourceName;
+        String result = "Sorry - missing help resource: " + resourceName; //$NON-NLS-1$
 
         InputStream is = resourceClass.getResourceAsStream(resourceName);
         
@@ -97,7 +97,7 @@ public class HelpUtils {
                 br = new BufferedReader(new InputStreamReader(is));
                 String line;
                 while (null != (line = br.readLine())) {
-                    sb.append(line).append("\n");
+                    sb.append(line).append("\n"); //$NON-NLS-1$
                 }
             }
             catch (IOException ignore) {
@@ -112,7 +112,7 @@ public class HelpUtils {
 
     static public void askOptionPopup(
             ActionEvent actionEvent,
-            Consumer<Integer> choiceConsumer,
+            IntConsumer choiceConsumer,
             String ... options)
     {
         askOptionPopup(actionEvent,
@@ -123,7 +123,7 @@ public class HelpUtils {
     static public void askOptionPopup(
             ActionEvent actionEvent,
             String title,
-            Consumer<Integer> choiceConsumer,
+            IntConsumer choiceConsumer,
             String ... options)
     {
         askOptionPopup(actionEvent, 20,20,
@@ -132,7 +132,7 @@ public class HelpUtils {
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
-	static public <T,U> JScrollPane makeTableInScrollPane(String heading1, String heading2, Collection<T> items, Function<T,U> namer) {
+    static public <T,U> JScrollPane makeTableInScrollPane(String heading1, String heading2, Collection<T> items, Function<T,U> namer) {
         
         List<T> list;
         if (items instanceof List) {
@@ -141,6 +141,8 @@ public class HelpUtils {
         else {
             list = new ArrayList<>(items);
         }
+        
+//        Map<T, U> map = list.stream().collect(Collectors.toMap(Function.identity(), namer));
         
         TableModel tableModel = new BspAbstractTableModel(heading1, heading2) {
             @Override
@@ -155,6 +157,7 @@ public class HelpUtils {
                 case 0: return item;
                 case 1: return namer.apply(item);
                 }
+                // TODO Auto-generated method stub
                 return null;
             }
         };
@@ -184,7 +187,7 @@ public class HelpUtils {
             ActionEvent actionEvent,
             int x, int y,
             String title,
-            Consumer<Integer> choiceConsumer,
+            IntConsumer choiceConsumer,
             String ... options)
     {        
         Component invoker = null;
@@ -198,7 +201,7 @@ public class HelpUtils {
     
     static public void askOptionPopup(Component invoker,
             String title,
-            Consumer<Integer> choiceConsumer,
+            IntConsumer choiceConsumer,
             String ... options)
     {
         askOptionPopup(invoker,  20, 20,
@@ -209,7 +212,7 @@ public class HelpUtils {
     static public void askOptionPopup(
             Component invoker, int x, int y,
             String title,
-            Consumer<Integer> choiceConsumer,
+            IntConsumer choiceConsumer,
             String ... options)
     {
         JPopupMenu popupMenu = new JPopupMenu();

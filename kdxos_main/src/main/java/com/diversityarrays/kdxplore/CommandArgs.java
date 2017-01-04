@@ -1,20 +1,20 @@
 /*
     KDXplore provides KDDart Data Exploration and Management
-    Copyright (C) 2015,2016  Diversity Arrays Technology, Pty Ltd.
-
+    Copyright (C) 2015,2016,2017  Diversity Arrays Technology, Pty Ltd.
+    
     KDXplore may be redistributed and may be modified under the terms
     of the GNU General Public License as published by the Free Software
     Foundation, either version 3 of the License, or (at your option)
     any later version.
-
+    
     KDXplore is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
-
+    
     You should have received a copy of the GNU General Public License
     along with KDXplore.  If not, see <http://www.gnu.org/licenses/>.
- */
+*/
 package com.diversityarrays.kdxplore;
 
 import java.io.File;
@@ -45,6 +45,7 @@ import com.diversityarrays.util.RunMode;
 
 import net.pearcan.application.ApplicationFolder;
 
+@SuppressWarnings("nls")
 class CommandArgs {
 
     private static final String NL_PLEASE_CONTACT_DART = "\nPlease contact Diversity Arrays Technology for a replacement";
@@ -129,10 +130,16 @@ class CommandArgs {
                     String s = args[argidx];
                     try {
                         if ("DEBUG".equalsIgnoreCase(s)) {
-                            Shared.Log.LOGGING_LEVEL = Level.FINEST;
+                            Shared.Log.setLoggingLevel(Level.FINEST);
                         }
                         else {
-                            Shared.Log.LOGGING_LEVEL = Level.parse(s);
+                            try {
+                                Shared.Log.setLoggingLevel(Level.parse(s));
+                            }
+                            catch (IllegalArgumentException e) {
+                                System.err.println("?Invalid logging level: " + s+ ", using FINEST");
+                                Shared.Log.setLoggingLevel(Level.FINEST);
+                            }
                         }
                     }
                     catch (IllegalArgumentException e) {
@@ -301,7 +308,6 @@ class CommandArgs {
                     if (EMPTY_CONFIG == kdxConfigService) {
                         try {
                             KdxploreConfig.initInstance(null);
-                            result = kdxConfigService.getConfigName();
                         }
                         catch (IOException e) {
                             errmsg = "Unable to initialise " + appName + " Configuration\n"

@@ -1,20 +1,20 @@
 /*
     KDXplore provides KDDart Data Exploration and Management
-    Copyright (C) 2015,2016  Diversity Arrays Technology, Pty Ltd.
-
+    Copyright (C) 2015,2016,2017  Diversity Arrays Technology, Pty Ltd.
+    
     KDXplore may be redistributed and may be modified under the terms
     of the GNU General Public License as published by the Free Software
     Foundation, either version 3 of the License, or (at your option)
     any later version.
-
+    
     KDXplore is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
-
+    
     You should have received a copy of the GNU General Public License
     along with KDXplore.  If not, see <http://www.gnu.org/licenses/>.
- */
+*/
 package com.diversityarrays.kdxplore;
 
 import java.awt.Font;
@@ -24,6 +24,7 @@ import java.util.Enumeration;
 import java.util.Locale;
 import java.util.function.Consumer;
 import java.util.logging.FileHandler;
+import java.util.logging.SimpleFormatter;
 
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
@@ -161,8 +162,15 @@ public class KDXplore {
 
         if (commandArgs.baseDir == null) {
             File userDir = new File(System.getProperty("user.dir")); //$NON-NLS-1$
-            // In Eclipse project this is where we store it
-            File distribDir = new File(userDir.getParentFile(), baseNameForDistrib);
+            
+            File distribDir;
+            if ("kdxos_main".equals(userDir.getName())) {
+                // In Eclipse project this is where we store it
+                distribDir = new File(userDir.getParentFile(), baseNameForDistrib);
+            }
+            else {
+                distribDir = new File(userDir, baseNameForDistrib);
+            }
 
             System.out.println("userDir=" + userDir); //$NON-NLS-1$
             System.out.println("distribDir=" + distribDir); //$NON-NLS-1$
@@ -177,12 +185,16 @@ public class KDXplore {
 
         File libDir = new File(commandArgs.baseDir, "lib"); //$NON-NLS-1$
         File[] libFiles = libDir.listFiles();
-        if (libFiles == null || libFiles.length < REQD_LIB_COUNT) {
-        	int found = libFiles==null ? 0 : libFiles.length;
+        if (libFiles == null) {
             MsgBox.error(null,
                     Msg.MSG_APP_START_DIRECTORY(kdxploreName, commandArgs.baseDir),
-                    Msg.ERRTITLE_MISSING_LIBRARY_FILES() + ": need " + REQD_LIB_COUNT
-                    	+ ", found " + found);
+                    Msg.ERRTITLE_MISSING_LIBRARY_FILES() + ": " + libDir.getPath());
+            System.exit(1);
+        }
+        else if (libFiles.length < REQD_LIB_COUNT) {
+            MsgBox.error(null,
+                    Msg.MSG_APP_START_DIRECTORY(kdxploreName, commandArgs.baseDir),
+                    Msg.ERRTITLE_MISSING_LIBRARY_FILES() + ": " + libFiles.length);
             System.exit(1);
         }
 
@@ -218,8 +230,8 @@ public class KDXplore {
 
         establishLogger(appFolder);
 
-        String configName = commandArgs.establishKdxConfig();
-//        KdxConstants.BETA = "KDX-Beta".equals(configName); //$NON-NLS-1$
+        @SuppressWarnings("unused")
+		String configName = commandArgs.establishKdxConfig();
 
         Long versionSubinfo = null;
         if (commandArgs.errmsg == null) {
@@ -386,7 +398,7 @@ public class KDXplore {
         try {
             File applicationFolder = appFolder.getApplicationFolder();
 
-            logger = Shared.Log.logger;
+            logger = Shared.Log.getLogger();
             if (logger == null) {
                 String kdxploreLog = appFolder.getApplicationName().toLowerCase() + ".log"; //$NON-NLS-1$
                 File logFile = new File(applicationFolder, kdxploreLog);
@@ -398,9 +410,10 @@ public class KDXplore {
                     logFile.renameTo(bakFile);
                 }
                 java.util.logging.FileHandler fh = new FileHandler(kdxploreLog);
+                fh.setFormatter(new SimpleFormatter());
                 logger = java.util.logging.Logger.getLogger(appFolder.getApplicationName());
                 logger.addHandler(fh);
-                Shared.Log.logger = logger;
+                Shared.Log.setLogger(logger);
 
                 logger.info("==== Log Started ===="); //$NON-NLS-1$
             }

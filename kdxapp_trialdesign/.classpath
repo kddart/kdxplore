@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src/main/java"/>
+	<classpathentry kind="src" path="src/main/resources"/>
+	<classpathentry kind="src" path="src/test/java"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/kdxos_clientlib"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/kdxos_common"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/kdxos_libs"/>
+	<classpathentry kind="lib" path="/kdxos_libs/libs/ssupport.jar"/>
+	<classpathentry kind="lib" path="/kdxos_libs/libs/pearcan-core.jar"/>
+	<classpathentry kind="lib" path="/kdxos_libs/libs/dalclient-core.jar"/>
+	<classpathentry kind="lib" path="/kdxos_libs/libs/collections-generic-4.01.jar"/>
+	<classpathentry kind="lib" path="/kdxos_libs/libs/javax.persistence-2.0.0.jar"/>
+	<classpathentry kind="lib" path="/kdxos_libs/libs/gson-2.3.1.jar"/>
+	<classpathentry kind="lib" path="/kdxos_libs/libs/poi-3.12-20150511.jar"/>
+	<classpathentry kind="lib" path="/kdxos_libs/libs/poi-ooxml-3.12-20150511.jar"/>
+	<classpathentry kind="lib" path="/kdxos_libs/libs/poi-ooxml-schemas-3.12-20150511.jar"/>
+	<classpathentry kind="lib" path="/kdxos_libs/libs/opencsv-2.3.jar"/>
+	<classpathentry kind="lib" path="/kdxos_libs/libs/swingx-all-1.6.4.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
+	<classpathentry kind="lib" path="/kdxos_libs/libs/kdx_gtools.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

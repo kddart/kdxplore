@@ -1,20 +1,20 @@
 /*
     KDXplore provides KDDart Data Exploration and Management
-    Copyright (C) 2015,2016  Diversity Arrays Technology, Pty Ltd.
-
+    Copyright (C) 2015,2016,2017  Diversity Arrays Technology, Pty Ltd.
+    
     KDXplore may be redistributed and may be modified under the terms
     of the GNU General Public License as published by the Free Software
     Foundation, either version 3 of the License, or (at your option)
     any later version.
-
+    
     KDXplore is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
-
+    
     You should have received a copy of the GNU General Public License
     along with KDXplore.  If not, see <http://www.gnu.org/licenses/>.
- */
+*/
 package com.diversityarrays.kdxplore;
 
 import java.io.BufferedReader;
@@ -46,11 +46,12 @@ import java.util.stream.Collectors;
 
 import com.diversityarrays.util.Either;
 import com.diversityarrays.util.JarUtil;
+import com.diversityarrays.util.MsgBox;
 
 @SuppressWarnings("nls")
 public class KdxConstants {
 
-    static private final String EXPIRY_YMD = "2016-12-31";
+    static private final String EXPIRY_YMD = "2017-02-15";
 
     static private long VERSION_INFO = 1483102800000L;
     static public long getVersionInfo() {
@@ -69,8 +70,8 @@ public class KdxConstants {
     // true to disable alpha/beta expiry checking
     static public final boolean PRODUCTION_MODE;
 
-    static public final int VERSION_CODE = 40;
-    static public final String VERSION = "1.0.40-OS";
+    static public final int VERSION_CODE = 43;
+    static public final String VERSION = "2.0.43";
 
     static {
         int pos = VERSION.indexOf('.');
@@ -126,7 +127,86 @@ public class KdxConstants {
     }
 
     static public void runStaticInitChecks(boolean errorIsFatal, boolean quiet) {
+
+        checkStatsUtil(errorIsFatal, quiet);
+
+        checkWorkPackageReader(errorIsFatal, quiet);
+
         checkMsgClasses(errorIsFatal, quiet);
+    }
+
+    private static void checkStatsUtil(boolean errorIsFatal, boolean quiet) {
+        try {
+            Class<?> statsUtil = Class.forName("com.diversityarrays.kdxplore.stats.StatsUtil");
+            Method initCheck = statsUtil.getMethod("initCheck");
+            if (Modifier.isStatic(initCheck.getModifiers())) {
+                try {
+                    initCheck.invoke(null);
+                    if (! quiet) {
+                        System.out.println("******************************");
+                        System.out.println("SUCCESS: StatsUtil.initCheck()");
+                        System.out.println("******************************");
+                    }
+                }
+                catch (InvocationTargetException | IllegalAccessException | IllegalArgumentException e) {
+                    reportCheckProblem(errorIsFatal, "%error on StatsUtil.initCheck()", e);
+                }
+            }
+            else {
+                System.err.println("%StatsUtil.initCheck(int) is not static");
+            }
+        }
+        catch (ClassNotFoundException | NoSuchMethodException | SecurityException e) {
+            System.err.println("%StatsUtil.initCheck: " + e.getClass().getSimpleName()+"=" + e.getMessage());
+        }
+    }
+
+    private static void checkWorkPackageReader(boolean errorIsFatal, boolean quiet) {
+        try {
+            Class<?> kdsdbu = Class.forName("com.diversityarrays.kdsmart.db.ormlite.KDSmartDatabaseUpgrader");
+            Field dbVersion = kdsdbu.getField("DATABASE_VERSION");
+            if (Modifier.isStatic(dbVersion.getModifiers())) {
+                if (int.class == dbVersion.getType()) {
+                    int dbVersionValue = dbVersion.getInt(null);
+                    System.out.println("KDSmart.DATABASE_VERSION=" + dbVersionValue);
+                    Class<?> wpr = Class.forName("com.diversityarrays.kdsmart.kdxs.WorkPackageReader");
+                    Method initCheck = wpr.getMethod("initCheck", int.class);
+                    if (Modifier.isStatic(initCheck.getModifiers())) {
+                        try {
+                            initCheck.invoke(wpr, dbVersionValue);
+                            if (! quiet) {
+                                System.out.println("*******************************");
+                                System.out.println("WorkPackageReader.initCheck(..)");
+                                System.out.println("*******************************");
+                            }
+                        }
+                        catch (InvocationTargetException | IllegalAccessException | IllegalArgumentException e) {
+                            reportCheckProblem(errorIsFatal,
+                                    "%error on WorkPackageReader.initCheck(" + dbVersionValue + ")",
+                                    e);
+                        }
+                    }
+                    else {
+                        System.err.println("%WorkPackageReader.initCheck(int) is not static");
+                    }
+                }
+                else {
+                    System.err.println("%KDSmartDatabaseUpgrader.DATABASE_VERSION is not int");
+                }
+            }
+            else {
+                System.err.println("%KDSmartDatabaseUpgrader.DATABASE_VERSION is not static");
+            }
+        }
+        catch (ClassNotFoundException
+                | NoSuchFieldException
+                | SecurityException
+                | IllegalArgumentException
+                | IllegalAccessException
+                | NoSuchMethodException e)
+        {
+            System.err.println("%WorkPackageReader.initCheck: " + e.getMessage());
+        }
     }
 
     static private void checkMsgClasses(boolean errorIsFatal, boolean quiet) {
@@ -153,7 +233,7 @@ public class KdxConstants {
             }
             catch (ClassNotFoundException e) {
                 if (! msgCheck.optional) {
-                    errors.add("Missing class: " + className);
+                    errors.add("Missing class: " + className + ", optional=" + msgCheck.optional);
                 }
             }
 
@@ -202,6 +282,7 @@ public class KdxConstants {
                 }
             }
         }
+
         return errors;
     }
 
@@ -279,8 +360,10 @@ public class KdxConstants {
             }
         }
         catch (MissingResourceException mre) {
-            errors.add("missing resource: " + bundleName);
-            System.err.println("Missing resource: " + fullMethodName);
+            if (! bundleName.startsWith("raw_")) {
+                errors.add("missing resource: " + bundleName);
+                System.err.println("Missing resource: " + fullMethodName);
+            }
         }
         catch (ClassCastException cce) {
             errors.add("Class Cast: " + m.getName());
@@ -309,6 +392,7 @@ public class KdxConstants {
         }
     }
 
+
     static public final String BUILT_BY = "Built-By"; //$NON-NLS-1$
     static public final String BUILD_DATE = "Build-Date"; //$NON-NLS-1$
 
@@ -318,7 +402,7 @@ public class KdxConstants {
 
     static public Map<String, String> getKdxploreManifestAttributes() {
 
-        Map<String,String> result = new LinkedHashMap<String,String>();
+        Map<String,String> result = new LinkedHashMap<>();
 
         BiConsumer<URL, Either<IOException,Attributes>> consumer = new BiConsumer<URL, Either<IOException,Attributes>>() {
             @Override
@@ -349,41 +433,43 @@ public class KdxConstants {
     }
 
     static class MsgCheck {
-    	public final String className;
-    	public final boolean optional;
-    	private Set<String> excludeMethodNames = null;
+        public final String className;
+        public final boolean optional;
+        private Set<String> excludeMethodNames = null;
 
-    	MsgCheck(String cn, boolean b) {
-    		className = cn;
-    		optional = b;
-    	}
+        MsgCheck(String cn, boolean b) {
+            className = cn;
+            optional = b;
+        }
 
-    	@Override
-    	public String toString() {
-    		return (optional?"?":"") + className
-    				+ (excludeMethodNames==null
-    					? ""
-    					: excludeMethodNames.stream().collect(Collectors.joining(",")));
-    	}
+        @Override
+        public String toString() {
+            return (optional?"?":"") + className
+                    + (excludeMethodNames==null
+                        ? ""
+                        : excludeMethodNames.stream().collect(Collectors.joining(",")));
+        }
 
-		public void addExcludeMethodName(String methodName) {
-			if (excludeMethodNames==null) {
-				excludeMethodNames = new HashSet<>();
-			}
-			excludeMethodNames.add(methodName);
-		}
+        public void addExcludeMethodName(String methodName) {
+            if (excludeMethodNames==null) {
+                excludeMethodNames = new HashSet<>();
+            }
+            excludeMethodNames.add(methodName);
+        }
 
-		public boolean shouldExcludeMethod(String methodName) {
-			if (excludeMethodNames==null) {
-				return false;
-			}
-			return excludeMethodNames.contains(methodName);
-		}
+        public boolean shouldExcludeMethod(String methodName) {
+            if (excludeMethodNames==null) {
+                return false;
+            }
+            return excludeMethodNames.contains(methodName);
+        }
     }
 
     static private List<MsgCheck> getMsgClassNames() {
 
-    	List<MsgCheck> list = new ArrayList<>();
+        Set<String> duplicates = new HashSet<>();
+        Set<String> seen = new HashSet<>();
+        List<MsgCheck> list = new ArrayList<>();
         InputStream is = KdxConstants.class.getResourceAsStream("msg-classes");
         if (is == null) {
             System.err.println("No Msg checking: missing resource 'msg-classes'");
@@ -397,12 +483,12 @@ public class KdxConstants {
                 while (null != (line = br.readLine())) {
                     line = line.trim();
                     if (line.isEmpty() || line.startsWith("#")) {
-                    	continue;
+                        continue;
                     }
                     if (line.startsWith(":")) {
-                    	if (msgCheck != null) {
-                    		msgCheck.addExcludeMethodName(line.substring(1));
-                    	}
+                        if (msgCheck != null) {
+                            msgCheck.addExcludeMethodName(line.substring(1));
+                        }
                     }
                     else {
                         boolean isOptional = false;
@@ -410,8 +496,14 @@ public class KdxConstants {
                             isOptional = true;
                             line = line.substring(1).trim();
                         }
-                        msgCheck = new MsgCheck(line, isOptional);
-                        list.add(msgCheck);
+                        if (seen.contains(line)) {
+                            duplicates.add(line);
+                        }
+                        else {
+                            seen.add(line);
+                            msgCheck = new MsgCheck(line, isOptional);
+                            list.add(msgCheck);
+                        }
                     }
                 }
             }
@@ -423,7 +515,12 @@ public class KdxConstants {
                     try { br.close(); } catch (IOException ignore) {}
                 }
             }
+
+            if (! duplicates.isEmpty()) {
+                String msg = duplicates.stream().collect(Collectors.joining("\n", "Duplicates in msg-classes:\n", ""));
+                MsgBox.warn(null, msg, "Packaging Warning");
+            }
         }
-    	return list;
+        return list;
     }
 }

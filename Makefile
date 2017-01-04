@@ -19,7 +19,7 @@ SPACE +=
 
 KDX_LIBS=kdxos_clientlib kdxos_common
 
-KDXAPPS=kdxapp_welcome
+KDXAPPS=kdxapp_welcome kdxapp_trialmgr kdxapp_trialdesign
 
 KDX_DIRS=$(KDX_LIBS) kdxos_main
 
