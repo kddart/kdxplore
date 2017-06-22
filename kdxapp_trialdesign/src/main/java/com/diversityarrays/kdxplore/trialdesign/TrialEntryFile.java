@@ -1,17 +1,17 @@
 /*
     KDXplore provides KDDart Data Exploration and Management
     Copyright (C) 2015,2016,2017  Diversity Arrays Technology, Pty Ltd.
-    
+
     KDXplore may be redistributed and may be modified under the terms
     of the GNU General Public License as published by the Free Software
     Foundation, either version 3 of the License, or (at your option)
     any later version.
-    
+
     KDXplore is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
-    
+
     You should have received a copy of the GNU General Public License
     along with KDXplore.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -128,11 +128,10 @@ public class TrialEntryFile {
      * @throws IOException
      * @throws EntryFileException
      */
-    public TrialEntryFile(TrialEntryFileParams entryFileParams)
+    public TrialEntryFile(TrialEntryFileParams entryFileParams, String normalEntryName)
     throws IOException, EntryFileException
     {
         String spatialChecksName = TrialDesignPreferences.getInstance().getSpatialEntryName();
-        String normalEntryName = TrialDesignPreferences.getInstance().getNormalEntryTypeName();
 
         Either<String, Set<String>> either = checkValidity(entryFileParams.roleByHeading);
         if (either.isLeft()) {
@@ -184,6 +183,8 @@ public class TrialEntryFile {
             SetByOne<String, Integer> entryIdsByExperiment = new SetByOne<>();
 
             String[] fields;
+
+            int sequence = 0;
             while (null != (fields = rowDataProvider.getNextRowData())) {
                 row++;
 
@@ -295,7 +296,8 @@ public class TrialEntryFile {
                             experiment, entryId, row));
                 }
 
-                trialEntries.add(new TrialEntry(location, experiment, entryId, entryName, entryType, nest, valueByFactor));
+                ++sequence;
+                trialEntries.add(new TrialEntry(sequence, location, experiment, entryId, entryName, entryType, nest, valueByFactor));
             } // end while more lines
 
 

@@ -1,17 +1,17 @@
 /*
     KDXplore provides KDDart Data Exploration and Management
     Copyright (C) 2015,2016,2017  Diversity Arrays Technology, Pty Ltd.
-    
+
     KDXplore may be redistributed and may be modified under the terms
     of the GNU General Public License as published by the Free Software
     Foundation, either version 3 of the License, or (at your option)
     any later version.
-    
+
     KDXplore is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
-    
+
     You should have received a copy of the GNU General Public License
     along with KDXplore.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -82,11 +82,11 @@ import com.diversityarrays.kdxplore.beans.DartEntityTableModel;
 import com.diversityarrays.kdxplore.data.dal.TrialPlus;
 import com.diversityarrays.kdxplore.data.dal.TrialPlusImpl;
 import com.diversityarrays.kdxplore.data.tool.ListCommandProcessor;
-import com.diversityarrays.kdxplore.data.tool.OkCancelDialog;
 import com.diversityarrays.kdxplore.data.util.EntityConverterUtility;
 import com.diversityarrays.kdxplore.prefs.KdxplorePreferences;
 import com.diversityarrays.ui.LoginDialog;
 import com.diversityarrays.util.MsgBox;
+import com.diversityarrays.util.OkCancelDialog;
 import com.diversityarrays.util.OptionalCheckboxRenderer;
 import com.diversityarrays.util.RunMode;
 
@@ -115,9 +115,9 @@ public class TrialSelectionDialog extends OkCancelDialog {
 	enum CollectPlotsMethod {
 		USE_NUM_RECORDS, // does NOT get each TrialUnit
 		SIMPLE_LIST, // gets all TrialUnits in one big download
-		PAGED_LIST // gets all TrialUnits in multiple pages - so user may be able to cancel 
+		PAGED_LIST // gets all TrialUnits in multiple pages - so user may be able to cancel
 	}
-	
+
 
 	static public void main(String[] args) {
 
@@ -127,7 +127,7 @@ public class TrialSelectionDialog extends OkCancelDialog {
 				return TrialSelectionSearchOptionsPanel.create(backgroundRunner);
 			}
 		};
-		
+
 		boolean test = false;
 		if (test) {
 			@SuppressWarnings("unchecked")
@@ -137,7 +137,7 @@ public class TrialSelectionDialog extends OkCancelDialog {
 			tsd.setVisible(true);
 		}
 		else {
-			
+
 			File propertiesFile = new File(System.getProperty("user.home"), //$NON-NLS-1$
 			        "LoginDialog.properties"); //$NON-NLS-1$
 			//.getBundle("LoginDialog"); //, Locale.getDefault());
@@ -153,12 +153,12 @@ public class TrialSelectionDialog extends OkCancelDialog {
 				} catch (IOException e) {
 					e.printStackTrace();
 					System.exit(1);
-				} 
+				}
 			}
-			
+
 			Preferences loginPreferences = KdxplorePreferences.getInstance().getPreferences();
 //			Preferences loginPreferences = Preferences.userNodeForPackage(KdxConstants.class);
-			
+
 			LoginDialog ld = new LoginDialog(null, "Login Please", loginPreferences, bundle); //$NON-NLS-1$
 			ld.setVisible(true);
 			DALClient client = ld.getDALClient();
@@ -183,12 +183,12 @@ public class TrialSelectionDialog extends OkCancelDialog {
 		System.exit(0);
 	}
 
-	   
+
 	private class TrialNameCellRenderer extends DefaultTableCellRenderer {
-	    
+
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value,
-                boolean isSelected, boolean hasFocus, int row, int column) 
+                boolean isSelected, boolean hasFocus, int row, int column)
         {
             super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 
@@ -201,7 +201,7 @@ public class TrialSelectionDialog extends OkCancelDialog {
                 if (kdxTrial != null) {
                     if (! tp.getTrialName().equals(kdxTrial.getTrialName())) {
                         fg = Color.RED;
-                        ttt = "<HTML>KDDartID=" + tp.getTrialId() + " but KDX Trial Name=[" + 
+                        ttt = "<HTML>KDDartID=" + tp.getTrialId() + " but KDX Trial Name=[" +
                                 StringUtil.htmlEscape(kdxTrial.getTrialName()) + "]";
                     }
                 }
@@ -210,18 +210,18 @@ public class TrialSelectionDialog extends OkCancelDialog {
             setToolTipText(ttt);
             return this;
         }
-        
+
     }
 
 	private DALClient client;
 
 	private JLabel messageLabel = new JLabel();
 	private JSplitPane splitPane;
-	
+
 	private DartEntityTableModel<TrialPlusImpl,Void> trialRecordTableModel = new DartEntityTableModel<TrialPlusImpl,Void>(
 			TrialPlusImpl.class,
 			DartEntityBeanRegistry.TRIAL_PLUS_BEAN_INFO,
-			DartEntityTableModel.DEFAULT_SELECTED_HEADING) 
+			DartEntityTableModel.DEFAULT_SELECTED_HEADING)
 	{
 		@Override
 		public Object getValueAt(int rowIndex, int columnIndex) {
@@ -236,7 +236,7 @@ public class TrialSelectionDialog extends OkCancelDialog {
 			return result;
 		}
 	};
-	
+
 	private JTable trialRecordTable = new JTable(trialRecordTableModel);
 
 	private JCheckBox wantTrialUnits = new JCheckBox("Get Plot Counts");
@@ -247,13 +247,13 @@ public class TrialSelectionDialog extends OkCancelDialog {
 		public void actionPerformed(ActionEvent e) {
 
 			if (client==null || ! client.isLoggedIn()) {
-				JOptionPane.showMessageDialog(TrialSelectionDialog.this, 
+				JOptionPane.showMessageDialog(TrialSelectionDialog.this,
 						"DAL Client is not logged in", getTitle(), JOptionPane.WARNING_MESSAGE);
 				return;
 			}
 
 			String clauseToUse = searchOptionsPanel.getFilteringClause();
-			
+
 			TrialCollectionTask task = new TrialCollectionTask(wantTrialUnits.isSelected(), clauseToUse);
 
 			setMessage(""); //$NON-NLS-1$
@@ -263,7 +263,7 @@ public class TrialSelectionDialog extends OkCancelDialog {
 	};
 
 	public TrialPlus[] trialRecords;
-	
+
 	private DefaultBackgroundRunner backgroundRunner = new DefaultBackgroundRunner();
 
 	private final TrialSearchOptionsPanel searchOptionsPanel;
@@ -275,7 +275,7 @@ public class TrialSelectionDialog extends OkCancelDialog {
 		public void choiceChanged() {
 		    handleSearchOptionsChoiceChanged();
 		}
-		
+
 		@Override
 		public void lookupsLoaded() {
 			findTrialRecords.setEnabled(true);
@@ -283,28 +283,28 @@ public class TrialSelectionDialog extends OkCancelDialog {
 		}
 	};
 
-	public TrialSelectionDialog(Window owner, String title, DALClient c, 
-	        List<Trial> kdxTrials, 
+	public TrialSelectionDialog(Window owner, String title, DALClient c,
+	        List<Trial> kdxTrials,
 			Transformer<BackgroundRunner, TrialSearchOptionsPanel> searchOptionsPanelFactory)
 	{
 		super(owner, title, USE_TRIALS);
-		
+
 		setGlassPane(backgroundRunner.getBlockingPane());
-		
+
 		searchOptionsPanel = searchOptionsPanelFactory.transform(backgroundRunner);
 		helpInstructions = new JLabel(searchOptionsPanel.getHtmlHelp(GET_TRIALS));
 
 		kdxTrialByIdDownloaded = kdxTrials.stream()
 		    .filter(t -> t.getIdDownloaded()!=null)
 		    .collect(Collectors.toMap(Trial::getIdDownloaded, java.util.function.Function.identity()));
-		
+
 		trialRecordTable.setName(this.getClass().getName()+".trialRecordTable"); //$NON-NLS-1$
-		
+
 		TableColumnModel tcm = trialRecordTable.getColumnModel();
 		TableCellRenderer cellRenderer = new OptionalCheckboxRenderer("Already downloaded");
 		tcm.getColumn(trialRecordTableModel.getChosenColumnIndex())
 		    .setCellRenderer(cellRenderer);
-		
+
 		for (int col = tcm.getColumnCount(); --col >= 0; ) {
 		    if ("TrialName".equals(trialRecordTable.getColumnName(col))) {
 	            TableColumn tc = tcm.getColumn(col);
@@ -323,11 +323,11 @@ public class TrialSelectionDialog extends OkCancelDialog {
                 handleSearchOptionsChoiceChanged();
             }
         });
-		
+
 		setDALClient(c);
-		
+
 		initialiseGui();
-		
+
 		if (owner != null) {
 		    Dimension ownerSize = owner.getSize();
 		    Dimension mySize = getSize();
@@ -343,7 +343,7 @@ public class TrialSelectionDialog extends OkCancelDialog {
 		        setSize(mySize);
 		    }
 		}
-		
+
 		// TODO consider using setSize to increase to parent's width
 		getOkAction().setEnabled(false);
 		trialRecordTableModel.addTableModelListener(new TableModelListener() {
@@ -372,7 +372,7 @@ public class TrialSelectionDialog extends OkCancelDialog {
 		}
 		super.setVisible(b);
 	}
-	
+
 	private void setMessage(final String msg) {
 		if (! SwingUtilities.isEventDispatchThread()) {
 			SwingUtilities.invokeLater(new Runnable() {
@@ -386,7 +386,7 @@ public class TrialSelectionDialog extends OkCancelDialog {
 			messageLabel.setText(msg);
 		}
 	}
-	
+
 	public void setDALClient(DALClient c) {
 		this.client = c;
 
@@ -421,7 +421,7 @@ public class TrialSelectionDialog extends OkCancelDialog {
 
 		return buttons;
 	}
-	
+
 	private final JLabel helpInstructions;
 	private final CardLayout cardLayout = new CardLayout();
 	private final JPanel cardPanel = new JPanel(cardLayout);
@@ -429,7 +429,7 @@ public class TrialSelectionDialog extends OkCancelDialog {
 	@SuppressWarnings("rawtypes")
 	@Override
 	protected Component createMainPanel() {
-		
+
 		CheckSelectionButtonsPanel csbp = new CheckSelectionButtonsPanel(CheckSelectionButtonsPanel.ALL, trialRecordTable);
 		csbp.addUncheckAllActionListener(new ActionListener() {
 			@Override
@@ -453,12 +453,12 @@ public class TrialSelectionDialog extends OkCancelDialog {
 		csbp.addCheckUnselectedActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				Set<Integer> selectedModelRows = new HashSet<Integer>(GuiUtil.getSelectedModelRows(trialRecordTable));
+				Set<Integer> selectedModelRows = new HashSet<>(GuiUtil.getSelectedModelRows(trialRecordTable));
 				if (selectedModelRows.isEmpty()) {
 					trialRecordTableModel.chooseAll();
 				}
 				else {
-					List<Integer> rowsToChoose = new ArrayList<Integer>();
+					List<Integer> rowsToChoose = new ArrayList<>();
 					for (int mrow = trialRecordTable.getRowCount(); --mrow >= 0; ) {
 						if (! selectedModelRows.contains(mrow)) {
 							rowsToChoose.add(mrow);
@@ -480,13 +480,13 @@ public class TrialSelectionDialog extends OkCancelDialog {
 		List<TableColumn> columns = DartEntityTableModel.collectNamedColumns(trialRecordTable, trialRecordTableModel, true,
 				"TrialName","Site","# Plots","# Measurements","Design","Manager","TrialType","Project","Start Date");
 //		List<TableColumn> columns = DartEntityTableModel.collectNonExpertColumns(trialRecordTable, trialRecordTableModel, true);
-		
-		Map<String,TableColumn[]> choices = new HashMap<String,TableColumn[]>();
+
+		Map<String,TableColumn[]> choices = new HashMap<>();
 		choices.put(INITIAL_COLUMNS_TAGNAME, columns.toArray(new TableColumn[columns.size()]));
-		
+
 		TableColumnSelectionButton tcsb = new TableColumnSelectionButton(trialRecordTable, choices);
 		tcsb.setSelectedColumns(INITIAL_COLUMNS_TAGNAME);
-		
+
 		trialRecordTable.setRowSorter(new TableRowSorter<DartEntityTableModel>(trialRecordTableModel));
 
 		JScrollPane scrollPane = new JScrollPane(trialRecordTable, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
@@ -501,10 +501,10 @@ public class TrialSelectionDialog extends OkCancelDialog {
 		cardPanel.add(trialsPanel, CARD_TRIALS);
 		cardLayout.show(cardPanel, CARD_HELP);
 
-		splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, 
+		splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
 				searchOptionsPanel.getViewComponent(),
 				cardPanel);
-		
+
 		return splitPane;
 	}
 
@@ -521,9 +521,9 @@ public class TrialSelectionDialog extends OkCancelDialog {
 	}
 
 	class TrialCollectionTask extends BackgroundTask<List<TrialPlusImpl>,Void> {
-		
+
 		private final String TAG = TrialCollectionTask.class.getSimpleName();
-		
+
 		private final CollectPlotsMethod collectPlotsMethod = CollectPlotsMethod.USE_NUM_RECORDS;
 		private final boolean collectPlotCounts;
 		private int plotsCollectedCount = -1;
@@ -546,21 +546,21 @@ public class TrialSelectionDialog extends OkCancelDialog {
 			ListCommandProcessor lcp = new ListCommandProcessor("list/trial/_nperpage/page/_num"); //$NON-NLS-1$
 
 			DalOperationsManager dalOperationsManager = null; // TODO remove
-			final DartEntityBuilder<TrialPlusImpl> trialBuilder = new DartEntityBuilder<TrialPlusImpl>(TrialPlusImpl.class, dalOperationsManager);
-			
-			final List<TrialPlusImpl> records = new ArrayList<TrialPlusImpl>();
+			final DartEntityBuilder<TrialPlusImpl> trialBuilder = new DartEntityBuilder<>(TrialPlusImpl.class, dalOperationsManager);
+
+			final List<TrialPlusImpl> records = new ArrayList<>();
 			DalResponseRecordVisitor visitor = new DalResponseRecordVisitor() {
 				@Override
 				public boolean visitResponseRecord(String resultTagName, DalResponseRecord record) {
-					List<ValueConversionProblem> problems = new ArrayList<ValueConversionProblem>();
-					TrialPlusImpl tr = trialBuilder.build(record.rowdata, null, problems);	
+					List<ValueConversionProblem> problems = new ArrayList<>();
+					TrialPlusImpl tr = trialBuilder.build(record.rowdata, null, problems);
 					if (tr != null) {
-	                    records.add(tr);                
+	                    records.add(tr);
 	                    if (DEBUG) {
 	                        for(String s : record.rowdata.keySet()){
 	                            Shared.Log.d(TAG, "visitResponseRecord: Columns ------------------- "+s); //$NON-NLS-1$
 	                        }
-	                    }	                    
+	                    }
 					}
 					return ! backgroundRunner.isCancelRequested();
 				}
@@ -569,10 +569,10 @@ public class TrialSelectionDialog extends OkCancelDialog {
 
 			Shared.Log.i(TAG, "Collecting Trials with filter="+filterClause); //$NON-NLS-1$
 			cancelled = ! lcp.visitAllWithFilter(client, visitor, filterClause, pageSize, backgroundRunner);
-			
+
 			if (! cancelled) {
 				Shared.Log.i(TAG, "Collected "+records.size() + " Trials"); //$NON-NLS-1$ //$NON-NLS-2$
-				
+
 				if (collectPlotCounts && ! records.isEmpty()) {
 					retrieveTrialUnits(records);
 				}
@@ -580,26 +580,26 @@ public class TrialSelectionDialog extends OkCancelDialog {
 
 			return records;
 		}
-		
+
 		private void retrieveTrialUnits(final List<TrialPlusImpl> records) {
-			
+
 			DartEntityBuilder<TrialUnit> trialUnitBuilder = null;
 			if (CollectPlotsMethod.USE_NUM_RECORDS != collectPlotsMethod) {
 				DalOperationsManager dalOperationsManager = null;
-				trialUnitBuilder = new DartEntityBuilder<TrialUnit>(TrialUnit.class, dalOperationsManager);
+				trialUnitBuilder = new DartEntityBuilder<>(TrialUnit.class, dalOperationsManager);
 			}
 
 			backgroundRunner.setProgressRange(0, records.size());
-			
+
 			plotsCollectedCount = 0;
 			for (TrialPlusImpl trial : records) {
 			    if (trial == null || trial.getTrialId() == null) {
 			        continue;
 			    }
 				int trialId = trial.getTrialId();
-				
+
 				backgroundRunner.setProgressString("Get Plot count for (#" + trialId + ") " + trial.getTrialName());
-				
+
 				switch (collectPlotsMethod) {
 				case PAGED_LIST:
 					collectTrialUnitsUsingPagedList(trialUnitBuilder, trial);
@@ -624,15 +624,15 @@ public class TrialSelectionDialog extends OkCancelDialog {
 
 		@Override
 		public void onCancel(CancellationException e) {
-			MsgBox.error(TrialSelectionDialog.this, 
-					"Cancelled by user", 
+			MsgBox.error(TrialSelectionDialog.this,
+					"Cancelled by user",
 					getTitle()+": Cancelled");
 		}
 
 		@Override
 		public void onException(Throwable cause) {
-			MsgBox.error(TrialSelectionDialog.this, 
-					cause.getMessage(), 
+			MsgBox.error(TrialSelectionDialog.this,
+					cause.getMessage(),
 					getTitle()+": Error");
 		}
 
@@ -644,11 +644,11 @@ public class TrialSelectionDialog extends OkCancelDialog {
 			StringBuilder sb = new StringBuilder();
 			if (cancelled) {
 				sb.append("Cancelled after ").append(records.size()).append(" Trials found");
-				
+
 				if (collectPlotCounts) {
 					if (plotsCollectedCount > 0) {
 						sb.append(" and Plot Counts retrieved for ").append(plotsCollectedCount);
-					}					
+					}
 				}
 			}
 			else {
@@ -677,47 +677,47 @@ public class TrialSelectionDialog extends OkCancelDialog {
 					int nPlots = Integer.parseInt(numOfRecords);
 					trial.setPlotsCount(nPlots);
 				} catch (NumberFormatException e) {
-					Shared.Log.e(TAG, 
+					Shared.Log.e(TAG,
 							"collectTrialunitCounts: " + cmd + "\nBAD numOfRecords=" + numOfRecords); //$NON-NLS-1$ //$NON-NLS-2$
 				}
 			} catch (DalResponseException | IOException e) {
 				Shared.Log.e(TAG, "collectTrialUnitCounts: " + cmd, e); //$NON-NLS-1$
 			}
 		}
-		
+
 		private void collectTrialUnitsUsingSimpleList(
 				final DartEntityBuilder<TrialUnit> trialUnitBuilder,
-				TrialPlusImpl trial) 
+				TrialPlusImpl trial)
 		{
 			String cmd = "trial/" + trial.getTrialId() + "/list/trialunit";  //$NON-NLS-1$//$NON-NLS-2$
 			if  (DEBUG) {
 				Shared.Log.d(TAG, "collectTrialUnitsUsingSimpleList: cmd=" + cmd); //$NON-NLS-1$
 			}
 			List<Plot> plots = new ArrayList<>();
-			
+
 			try {
 				DalResponse response = client.performQuery(cmd);
 				DalResponseRecordVisitor visitor = new DalResponseRecordVisitor() {
 					@Override
 					public boolean visitResponseRecord(String tag, DalResponseRecord rr) {
-						List<ValueConversionProblem> problems = new ArrayList<ValueConversionProblem>();
-						TrialUnit tu = trialUnitBuilder.build(rr.rowdata, null, problems);			
-						plots.add(EntityConverterUtility.makePlotFromTrialUnit(tu));				
+						List<ValueConversionProblem> problems = new ArrayList<>();
+						TrialUnit tu = trialUnitBuilder.build(rr.rowdata, null, problems);
+						plots.add(EntityConverterUtility.makePlotFromTrialUnit(tu));
 						return true;
 					}
 				};
-			
+
 				response.visitResults(visitor);
 				trial.setPlots(plots);
 			} catch (DalResponseException | IOException e) {
 				Shared.Log.e(TAG, "collectTrialUnitsUsingSimpleList: cmd=" + cmd, e); //$NON-NLS-1$
 			}
 		}
-		
+
 
 		private void collectTrialUnitsUsingPagedList(
 				final DartEntityBuilder<TrialUnit> trialUnitBuilder,
-				TrialPlusImpl trial) 
+				TrialPlusImpl trial)
 		{
 			String cmd = "trial/" + trial.getTrialId()  + "/list/trialUnit/_nperpage/page/_num";  //$NON-NLS-1$//$NON-NLS-2$
 			if  (DEBUG) {
@@ -730,19 +730,19 @@ public class TrialSelectionDialog extends OkCancelDialog {
 				DalResponseRecordVisitor trialUnitVisitor = new DalResponseRecordVisitor() {
 					@Override
 					public boolean visitResponseRecord(String resultTagName, DalResponseRecord record) {
-						List<ValueConversionProblem> problems = new ArrayList<ValueConversionProblem>();
-						TrialUnit tu = trialUnitBuilder.build(record.rowdata, null, problems);			
-						plots.add(EntityConverterUtility.makePlotFromTrialUnit(tu));				
+						List<ValueConversionProblem> problems = new ArrayList<>();
+						TrialUnit tu = trialUnitBuilder.build(record.rowdata, null, problems);
+						plots.add(EntityConverterUtility.makePlotFromTrialUnit(tu));
 						return true;
 					}
 				};
 				lcp.visitAll(client, trialUnitVisitor, 1000);
 				trial.setPlots(plots);
-				
+
 			} catch (DalResponseException | IOException e) {
 				Shared.Log.e(TAG, "collectTrialUnitsUsingPagedList: " + cmd, e); //$NON-NLS-1$
 			}
 		}
-		
+
 	}
 }

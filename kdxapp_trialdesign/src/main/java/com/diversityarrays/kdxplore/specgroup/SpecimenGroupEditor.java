@@ -80,7 +80,6 @@ import com.diversityarrays.daldb.core.SpecimenGroup;
 import com.diversityarrays.db.DartEntityBuilder;
 import com.diversityarrays.db.DartEntityVisitor;
 import com.diversityarrays.db.DartSchemaHelper;
-import com.diversityarrays.kdsmart.field.UnicodeChars;
 import com.diversityarrays.kdxplore.Shared;
 import com.diversityarrays.kdxplore.Shared.For;
 import com.diversityarrays.kdxplore.data.OfflineData;
@@ -96,6 +95,7 @@ import com.diversityarrays.util.ImageId;
 import com.diversityarrays.util.KDClientUtils;
 import com.diversityarrays.util.MsgBox;
 import com.diversityarrays.util.Pair;
+import com.diversityarrays.util.UnicodeChars;
 
 import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;

@@ -1,17 +1,17 @@
 /*
     KDXplore provides KDDart Data Exploration and Management
     Copyright (C) 2015,2016,2017  Diversity Arrays Technology, Pty Ltd.
-    
+
     KDXplore may be redistributed and may be modified under the terms
     of the GNU General Public License as published by the Free Software
     Foundation, either version 3 of the License, or (at your option)
     any later version.
-    
+
     KDXplore is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
-    
+
     You should have received a copy of the GNU General Public License
     along with KDXplore.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -35,13 +35,16 @@ import java.util.function.Function;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.JTable;
 
 import com.diversityarrays.kdxplore.design.EntryType;
 import com.diversityarrays.kdxplore.design.ReplicateDetailsModel;
 import com.diversityarrays.kdxplore.design.ReplicateDetailsModel.DetailsChangeListener;
 import com.diversityarrays.kdxplore.fielddesign.FieldLayoutEditPanel;
 import com.diversityarrays.kdxplore.fieldlayout.ReplicateDetailsPanel.SimpleContentFactory;
+import com.diversityarrays.kdxplore.trialdesign.PositionedTrialEntryTableModel;
 import com.diversityarrays.util.Either;
 
 public class LocationEditPanel extends JPanel {
@@ -85,19 +88,12 @@ public class LocationEditPanel extends JPanel {
     private final Map<PlantingBlock<ReplicateCellContent>, ReplicateDetailsPanel> replicatePanelByBlock = new HashMap<>();
 
     private final FieldSizer<ReplicateCellContent> fieldSizer = new FieldSizer<ReplicateCellContent>() {
-//        @Override
-//        public void setWidth(int w) {
-//            fieldLayoutEditPanel.setWidth(w);
-//        }
         @Override
         public void setSelectedBlocks(Collection<PlantingBlock<ReplicateCellContent>> blocks) {
             fieldLayoutEditPanel.setSelectedBlocks(blocks);
             updateEntryTypeCounts(blocks);
+            trialEntryTableModel.setSelectedBlocks(blocks);
         }
-//        @Override
-//        public void setHeight(int h) {
-//            fieldLayoutEditPanel.setHeight(h);
-//        }
         @Override
         public void setDimension(int w, int h) {
             fieldLayoutEditPanel.setDimension(w, h);
@@ -125,6 +121,8 @@ public class LocationEditPanel extends JPanel {
     private final Consumer<SiteLocation> onLocationNameChanged;
     private final Consumer<String> messagePrinter;
 
+	private final PositionedTrialEntryTableModel trialEntryTableModel;
+	private final JTable trialEntryTable;
     public LocationEditPanel(
             Consumer<SiteLocation> onLocationNameChanged,
             SiteLocation location,
@@ -141,6 +139,12 @@ public class LocationEditPanel extends JPanel {
 
         this.entryTypeColorSupplier = entryTypeColorSupplier;
         this.messagePrinter = messagePrinter;
+
+
+        trialEntryTableModel = new PositionedTrialEntryTableModel(location,
+        		plantingBlockTableModel,
+        		dataProvider.getTrialEntryFile());
+        trialEntryTable = new JTable(trialEntryTableModel);
 
         fieldLayoutEditPanel = new FieldLayoutEditPanel<>(
                 new Dimension(siteLocation.widthInCells, siteLocation.heightInCells),
@@ -179,10 +183,12 @@ public class LocationEditPanel extends JPanel {
 //                BorderLayout.NORTH);
         repsPanel.add(leftRight, BorderLayout.CENTER);
 
-//        fieldLayoutEditPanel.setBorder(new LineBorder(Color.RED));
+        JSplitPane bottomSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
+        		new JScrollPane(trialEntryTable), fieldLayoutEditPanel);
+
         JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
                 repsPanel,
-                fieldLayoutEditPanel);
+                bottomSplit);
         splitPane.setResizeWeight(0.5);
 
         add(splitPane, BorderLayout.CENTER);
@@ -232,7 +238,7 @@ public class LocationEditPanel extends JPanel {
         fieldLayoutEditPanel.setFieldDimension(dp.width, dp.height);
 
         for (PlantingBlock<?> pb : plantingBlockTableModel.getPlantingBlocks()) {
-            pb.setSpatialChecksCount(dp.nSpatials);
+            pb.setSpatialChecksRequired(dp.nSpatials);
         }
 
         replicatePanelByBlock.values().stream()

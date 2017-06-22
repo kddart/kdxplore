@@ -1,17 +1,17 @@
 /*
     KDXplore provides KDDart Data Exploration and Management
     Copyright (C) 2015,2016,2017  Diversity Arrays Technology, Pty Ltd.
-    
+
     KDXplore may be redistributed and may be modified under the terms
     of the GNU General Public License as published by the Free Software
     Foundation, either version 3 of the License, or (at your option)
     any later version.
-    
+
     KDXplore is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
-    
+
     You should have received a copy of the GNU General Public License
     along with KDXplore.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -90,7 +90,7 @@ import net.pearcan.ui.widget.PromptTextField;
 
 @SuppressWarnings("nls")
 public class AddScoringSetDialog extends JDialog {
-    
+
     private static final String PLEASE_CHOOSE_ONE_OR_MORE_TRAITS = "Please choose one or more Traits";
 
     private static final String PLEASE_PROVIDE_A_DESCRIPTION = "Please provide a description";
@@ -108,16 +108,18 @@ public class AddScoringSetDialog extends JDialog {
 
     private final Action useAllAction = new AbstractAction(Msg.ACTION_USE_ALL()) {
         @Override
-        public void actionPerformed(ActionEvent e) {            
+        public void actionPerformed(ActionEvent e) {
             /*List<ChoiceNode> changed = */traitInstanceChoiceTreeModel.setAllChosen(true);
+            updateCreateAction("Use all");
             treeTable.repaint();
         }
     };
-    
+
     private final Action useNoneAction = new AbstractAction(Msg.ACTION_USE_NONE()) {
         @Override
         public void actionPerformed(ActionEvent e) {
             /*List<ChoiceNode> changed = */traitInstanceChoiceTreeModel.setAllChosen(false);
+            updateCreateAction("Use none");
             treeTable.repaint();
         }
     };
@@ -128,13 +130,13 @@ public class AddScoringSetDialog extends JDialog {
             dispose();
         }
     };
-    
+
     public boolean addedSampleGroup = false;
-    
+
     private final Action createAction = new AbstractAction(Msg.ACTION_CREATE()) {
         @Override
         public void actionPerformed(ActionEvent e) {
-            
+
             DeviceIdentifier scoringDevId = getScoringDeviceIdentifier();
             if (scoringDevId == null) {
                 return;
@@ -145,17 +147,17 @@ public class AddScoringSetDialog extends JDialog {
             if (! collectScoringSortOrderAndTraitInstanceByKey(ssoByTraitId, tiByKey)) {
                 return;
             }
-            
+
             List<TraitInstance> traitInstances = new ArrayList<>();
 
             SampleGroup sampleGroup = createSampleGroupAndCollectTraitInstances(
                     scoringDevId, ssoByTraitId, tiByKey, traitInstances);
-            
+
             List<Plot> plots = collectPlots();
 
             BatchHandler<SampleGroup> batchHandler = new MyBatchHandler(sampleGroup, traitInstances, plots);
 
-            Either<Exception, SampleGroup> either = kdxploreDatabase.doBatch(batchHandler);            
+            Either<Exception, SampleGroup> either = kdxploreDatabase.doBatch(batchHandler);
             if (either.isRight()) {
                 addedSampleGroup = true;
                 dispose();
@@ -164,11 +166,11 @@ public class AddScoringSetDialog extends JDialog {
                 MsgBox.error(AddScoringSetDialog.this, either.left(), Msg.ERRTITLE_ERROR(getTitle()));
             }
         }
-        
+
         private boolean collectScoringSortOrderAndTraitInstanceByKey(
-                Map<Integer, Integer> ssoByTraitId, 
-                Map<String, TraitInstance> tiByKey) 
-        { 
+                Map<Integer, Integer> ssoByTraitId,
+                Map<String, TraitInstance> tiByKey)
+        {
             try {
                 Predicate<TraitInstance> visitor = new Predicate<TraitInstance>() {
                     @Override
@@ -181,7 +183,7 @@ public class AddScoringSetDialog extends JDialog {
                         return true;
                     }
                 };
-                kdxploreDatabase.getKDXploreKSmartDatabase().visitTraitInstancesForTrial(trial.getTrialId(), 
+                kdxploreDatabase.getKDXploreKSmartDatabase().visitTraitInstancesForTrial(trial.getTrialId(),
                         WithTraitOption.ONLY_NON_CALC_TRAITS,
                         visitor);
             }
@@ -202,7 +204,7 @@ public class AddScoringSetDialog extends JDialog {
                     }
                 }
                 if (scoringDevId == null) {
-                    MsgBox.error(AddScoringSetDialog.this, 
+                    MsgBox.error(AddScoringSetDialog.this,
                             Msg.ERRMSG_MISSING_DEVICE_ID(DeviceType.FOR_SCORING.name()),
                             Msg.ERRTITLE_INTERNAL_ERROR(getTitle()));
                     return null;
@@ -212,13 +214,13 @@ public class AddScoringSetDialog extends JDialog {
                 MsgBox.error(AddScoringSetDialog.this, e1.getMessage(), getTitle());
                 return null;
             }
-            
+
             return scoringDevId;
         }
 
         private SampleGroup createSampleGroupAndCollectTraitInstances(DeviceIdentifier scoringDevId,
                 Map<Integer, Integer> ssoByTraitId, Map<String, TraitInstance> tiByKey,
-                List<TraitInstance> traitInstances) 
+                List<TraitInstance> traitInstances)
         {
 //            int maxSso = 0;
 //            if (! ssoByTraitId.isEmpty()) {
@@ -226,7 +228,7 @@ public class AddScoringSetDialog extends JDialog {
 //                ssos.sort(Comparator.reverseOrder());
 //                maxSso = ssos.get(0);
 //            }
-            
+
             SampleGroup sampleGroup = new SampleGroup();
             sampleGroup.setDateLoaded(new Date());
             sampleGroup.setDeviceIdentifierId(scoringDevId.getDeviceIdentifierId());
@@ -248,29 +250,29 @@ public class AddScoringSetDialog extends JDialog {
 
         private List<Plot> collectPlots() {
             List<Plot> plots = new ArrayList<>();
-            
+
             TrialItemVisitor<Plot> plotVisitor = new TrialItemVisitor<Plot>() {
                 @Override
                 public void setExpectedItemCount(int count) {
                     // ignore
                 }
-                
+
                 @Override
                 public boolean consumeItem(Plot plot) throws IOException {
                     plots.add(plot);
                     return true;
                 }
             };
-            kdxploreDatabase.getKDXploreKSmartDatabase().visitPlotsForTrial(trial.getTrialId(), 
-                    SampleGroupChoice.NO_TAGS_SAMPLE_GROUP, 
-                    WithPlotAttributesOption.WITHOUT_PLOT_ATTRIBUTES, 
+            kdxploreDatabase.getKDXploreKSmartDatabase().visitPlotsForTrial(trial.getTrialId(),
+                    SampleGroupChoice.NO_TAGS_SAMPLE_GROUP,
+                    WithPlotAttributesOption.WITHOUT_PLOT_ATTRIBUTES,
                     plotVisitor);
             return plots;
         }
     };
-    
-    
-    
+
+
+
 //    static private String makeTiKey(Trait trait, int instanceNumber) {
 //        return trait.getTraitId() + "/" + instanceNumber; //$NON-NLS-1$
 //    }
@@ -284,16 +286,16 @@ public class AddScoringSetDialog extends JDialog {
     private final Trial trial;
 
     protected boolean wantSampleValues = false;
-    
+
     private JRadioButton noSampleValuesButton = null;
 
     private final JLabel warningMsg = new JLabel();
     private PromptTextField descriptionField = new PromptTextField(Msg.PROMPT_DESC_FOR_SCORING_SET());
-    
+
     private final int curatedSampleGroupId;
 
     private final JXTreeTable treeTable;
-    
+
     private final Function<TraitInstance, String> childNameProvider = new Function<TraitInstance, String>() {
         @Override
         public String apply(TraitInstance ti) {
@@ -311,16 +313,16 @@ public class AddScoringSetDialog extends JDialog {
 //        }
 //    };
 
-    public AddScoringSetDialog(Window owner, 
-            KdxploreDatabase kdxdb, 
+    public AddScoringSetDialog(Window owner,
+            KdxploreDatabase kdxdb,
             Trial trial,
             Map<Trait, List<TraitInstance>> instancesByTrait,
-            SampleGroup curatedSampleGroup) 
+            SampleGroup curatedSampleGroup)
     {
         super(owner, Msg.TITLE_ADD_SCORING_SET(), ModalityType.APPLICATION_MODAL);
-        
+
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        
+
         this.kdxploreDatabase = kdxdb;
         this.trial = trial;
         this.curatedSampleGroupId = curatedSampleGroup==null ? 0 : curatedSampleGroup.getSampleGroupId();
@@ -340,7 +342,7 @@ public class AddScoringSetDialog extends JDialog {
                     if (list == null || list.size() != 1) {
                         OptionalInt opt = traitInstanceChoiceTreeModel.getChildChosenCountIfNotAllChosen(t);
                         StringBuilder sb = new StringBuilder(t.getTraitName());
-                        
+
                         if (opt.isPresent()) {
                             // only some of the children are chosen
                             int childChosenCount = opt.getAsInt();
@@ -369,13 +371,13 @@ public class AddScoringSetDialog extends JDialog {
                 .filter(list -> list.size() > 1).findFirst();
         String heading1 = opt.isPresent() ? "Trait/Instance" : "Trait";
 
-        traitInstanceChoiceTreeModel = new ChoiceTreeTableModel<Trait, TraitInstance>(
+        traitInstanceChoiceTreeModel = new ChoiceTreeTableModel<>(
                 heading1, "Use?", //$NON-NLS-1$
-                noCalcsSorted, 
-                parentNameProvider, 
+                noCalcsSorted,
+                parentNameProvider,
                 childNameProvider
                 );
-        
+
 //        traitInstanceChoiceTreeModel = new TTChoiceTreeTableModel(instancesByTrait);
 
         traitInstanceChoiceTreeModel.addChoiceChangedListener(new ChoiceChangedListener() {
@@ -385,20 +387,20 @@ public class AddScoringSetDialog extends JDialog {
                 treeTable.repaint();
             }
         });
-        
+
         traitInstanceChoiceTreeModel.addTreeModelListener(new TreeModelListener() {
             @Override
             public void treeStructureChanged(TreeModelEvent e) {
             }
-            
+
             @Override
             public void treeNodesRemoved(TreeModelEvent e) {
             }
-            
+
             @Override
             public void treeNodesInserted(TreeModelEvent e) {
             }
-            
+
             @Override
             public void treeNodesChanged(TreeModelEvent e) {
                 updateCreateAction("treeNodesChanged");
@@ -443,7 +445,7 @@ public class AddScoringSetDialog extends JDialog {
 
         updateCreateAction("init");
 //        KDClientUtils.initAction(ImageId.`CHECK_ALL, useAllAction, "Click to Use All");
-        
+
         treeTable = new JXTreeTable(traitInstanceChoiceTreeModel);
         treeTable.setAutoResizeMode(JXTreeTable.AUTO_RESIZE_ALL_COLUMNS);
 
@@ -451,9 +453,9 @@ public class AddScoringSetDialog extends JDialog {
         if (renderer instanceof JLabel) {
             ((JLabel) renderer).setHorizontalAlignment(JLabel.CENTER);
         }
-        
+
         Box buttons = Box.createHorizontalBox();
-        
+
         buttons.add(new JButton(useAllAction));
         buttons.add(new JButton(useNoneAction));
 
@@ -469,7 +471,7 @@ public class AddScoringSetDialog extends JDialog {
 
         pack();
     }
-    
+
     private Box createWantSampleButtons(SampleGroup curatedSampleGroup) {
         Box result = null;
         ActionListener rbListener = new ActionListener() {
@@ -478,11 +480,11 @@ public class AddScoringSetDialog extends JDialog {
                 wantSampleValues = noSampleValuesButton != e.getSource();
             }
         };
-        
+
         result = Box.createHorizontalBox();
         String noSampleValues = Msg.OPTION_NO_SAMPLE_VALUES();
         ButtonGroup bg = new ButtonGroup();
-        for (String rbname : new String[] { 
+        for (String rbname : new String[] {
                 noSampleValues,
                 Msg.OPTION_CURATED_SAMPLE_VALUES()})
         {
@@ -498,22 +500,23 @@ public class AddScoringSetDialog extends JDialog {
             }
         }
         result.add(Box.createHorizontalGlue());
-        
+
         return result;
     }
 
     private void updateCreateAction(String from) {
         System.out.println("updateCreateAction(" + from + ")");
         String msg = null;
+
         String desc = descriptionField.getText().trim();
         if (Check.isEmpty(desc)) {
             msg = PLEASE_PROVIDE_A_DESCRIPTION;
         }
-        else {
-            if (traitInstanceChoiceTreeModel.getAnyChosen()) {
-                msg = PLEASE_CHOOSE_ONE_OR_MORE_TRAITS;
-            }
+
+        if (! traitInstanceChoiceTreeModel.getAnyChosen()) {
+            msg = PLEASE_CHOOSE_ONE_OR_MORE_TRAITS;
         }
+
         warningMsg.setText(msg==null ? "" : msg);
         createAction.setEnabled(Check.isEmpty(msg));
     }
@@ -521,7 +524,7 @@ public class AddScoringSetDialog extends JDialog {
     private final ChoiceTreeTableModel<Trait, TraitInstance> traitInstanceChoiceTreeModel;
 
     class MyBatchHandler implements BatchHandler<SampleGroup> {
-        
+
         private final List<TraitInstance> traitInstances;
         private final SampleGroup sampleGroup;
         private final List<Plot> plots;
@@ -531,31 +534,31 @@ public class AddScoringSetDialog extends JDialog {
             this.traitInstances = traitInstances;
             this.plots = plots;
         }
-        
+
         @Override
         public SampleGroup call() throws Exception {
 
             ItemConsumerHelper ich = kdxploreDatabase.getKDXploreKSmartDatabase().getItemConsumerHelper();
-            
+
             Map<TraitLevel, List<TraitInstance>> listByLevel = traitInstances.stream()
                     .collect(Collectors.groupingBy(ti -> ti.trait.getTraitLevel()));
 
             List<TraitInstance> plotTraitInstances = listByLevel.get(TraitLevel.PLOT);
-            List<TraitInstance> subPlotTraitInstances = listByLevel.get(TraitLevel.SPECIMEN);
-            
             createNewInstances(ich, plotTraitInstances);
+
+            List<TraitInstance> subPlotTraitInstances = listByLevel.get(TraitLevel.SPECIMEN);
             createNewInstances(ich, subPlotTraitInstances);
 
             kdxploreDatabase.saveSampleGroup(sampleGroup);
-            
+
             int trialId = trial.getTrialId();
-            
+
             Map<String, Sample> sampleByKey = new HashMap<>();
             if (wantSampleValues) {
                 TrialItemVisitor<Sample> curatedSamplesVisitor = new TrialItemVisitor<Sample>() {
                     @Override
                     public void setExpectedItemCount(int count) { }
-                    
+
                     @Override
                     public boolean consumeItem(Sample s) throws IOException {
                         String key = Util.createUniqueSampleKey(s);
@@ -566,8 +569,8 @@ public class AddScoringSetDialog extends JDialog {
                 kdxploreDatabase.getKDXploreKSmartDatabase()
                     .visitSamplesForTrial(
                             SampleGroupChoice.create(curatedSampleGroupId),
-                            trialId, 
-                            SampleOrder.ALL_UNORDERED, 
+                            trialId,
+                            SampleOrder.ALL_UNORDERED,
                             curatedSamplesVisitor);
             }
 
@@ -576,104 +579,41 @@ public class AddScoringSetDialog extends JDialog {
                 @Override
                 public void accept(KdxSample sample) {
                     sampleGroup.addSample(sample);
-                }                
+                }
             };
             for (Plot plot : plots) {
-                DatabaseUtil.createSamples(trialId, plot, 
+                DatabaseUtil.createSamples(trialId, plot,
                         sampleGroup.getSampleGroupId(),
-                        previousSampleByKey, 
-                        plotTraitInstances, subPlotTraitInstances, 
+                        previousSampleByKey,
+                        plotTraitInstances,
+                        subPlotTraitInstances,
                         sampleConsumer);
-//                for (TraitInstance ti : plotTraitInstances) {
-//                    KdxSample sample = new KdxSample();
-//                    sample.setSampleGroupId(sampleGroup.getSampleGroupId());
-//                    
-//                    // These 5 are the composite-key
-//                    sample.setTrialId(trial.getTrialId());
-//                    sample.setPlotId(plot.getPlotId());
-//                    sample.setSpecimenNumber(PlotOrSpecimen.ORGANISM_NUMBER_IS_PLOT);
-//                    sample.setTraitId(ti.getTraitId());
-//                    sample.setTraitInstanceNumber(ti.getInstanceNumber());
-//                    
-//                    
-//                    if (wantSampleValues) {
-//                        String sampleKey = Util.createUniqueSampleKey(sample);
-//                        Sample previous = sampleByKey.get(sampleKey);
-//                        if (previous != null) {
-//                            sample.setMeasureDateTime(previous.getMeasureDateTime());
-//                            sample.setTraitValue(previous.getTraitValue());
-//                        }
-//                    }
-//                    
-//                    sampleGroup.addSample(sample);
-//                }
-//
-//                if (! subPlotTraitInstances.isEmpty()) {
-//                    for (Specimen specimen : plot.getSpecimens()) {
-//                        for (TraitInstance ti : subPlotTraitInstances) {
-//                            KdxSample sample = new KdxSample();
-//                            sample.setSampleGroupId(sampleGroup.getSampleGroupId());
-//
-//                            // These 5 are the composite-key
-//                            sample.setTrialId(trial.getTrialId());
-//                            sample.setPlotId(plot.getPlotId());
-//                            sample.setSpecimenNumber(specimen.getSpecimenNumber());
-//                            sample.setTraitId(ti.getTraitId());
-//                            sample.setTraitInstanceNumber(ti.getInstanceNumber());
-//
-//                            if (wantSampleValues) {
-//                                String key = Util.createUniqueSampleKey(trialId, plot, ti);
-//                                Sample previous = sampleByKey.get(key);
-//                                if (previous != null) {
-//                                    sample.setMeasureDateTime(previous.getMeasureDateTime());
-//                                    sample.setTraitValue(previous.getTraitValue());
-//                                }
-//                            }
-//
-//                            sampleGroup.addSample(sample);
-//                        }
-//                    }
-//                }
             }
 
             KDSmartDatabase kdsdb = kdxploreDatabase.getKDXploreKSmartDatabase();
 
-            BatchHandler<Void> batchHandler = new BatchHandler<Void>() {
-                @Override
-                public Void call() throws Exception {
-                    kdsdb.saveMultipleSamples(sampleGroup.getSamples(), false);
-                    return null;
-                }
+            kdsdb.saveMultipleSamples(sampleGroup.getSamples(), false);
 
-                @Override
-                public boolean checkSuccess(Void t) {
-                    return true;
-                }
-            };
-
-            Either<Exception, Void> either = kdsdb.doBatch(batchHandler);
-
-            if (either.isLeft()) {
-                throw either.left();
-            }
             return sampleGroup;
         }
 
         private void createNewInstances(
-                ItemConsumerHelper ich, 
+                ItemConsumerHelper ich,
                 List<TraitInstance> traitInstances)
         throws CreateItemException
         {
-            for (TraitInstance ti : traitInstances) {
-                if (ti.getTraitInstanceId() <= 0) {
-                    ich.createNewItemInDatabase(TraitInstance.class, ti);
+        	if (traitInstances != null) {
+                for (TraitInstance ti : traitInstances) {
+                    if (ti.getTraitInstanceId() <= 0) {
+                        ich.createNewItemInDatabase(TraitInstance.class, ti);
+                    }
                 }
-            }
+        	}
         }
 
         @Override
         public boolean checkSuccess(SampleGroup sg) {
             return sg.getSampleGroupId() > 0;
-        }  
+        }
     }
 }

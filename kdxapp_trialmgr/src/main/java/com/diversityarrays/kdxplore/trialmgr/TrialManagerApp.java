@@ -85,13 +85,13 @@ import net.pearcan.ui.GuiUtil;
 import net.pearcan.util.BackgroundRunner;
 import net.pearcan.util.MessagePrinter;
 
-public class TrialManagerPanel extends JPanel implements TrialExplorerManager, KdxApp {
+public class TrialManagerApp extends JPanel implements TrialExplorerManager, KdxApp {
 
 	private static final String TAB_TRAITS = Msg.TAB_TRAITS();
 	private static final String TAB_TRIALS = Msg.TAB_TRIALS();
 	private static final String TAB_TAGS = Msg.TAB_TAGS();
 
-	private static final String TAG = TrialManagerPanel.class.getSimpleName();
+	private static final String TAG = TrialManagerApp.class.getSimpleName();
 
 	private final JLabel databaseUrlLabel = new JLabel();
 	
@@ -220,7 +220,7 @@ public class TrialManagerPanel extends JPanel implements TrialExplorerManager, K
     };
 
 	
-	public TrialManagerPanel(KdxPluginInfo pluginInfo) 
+	public TrialManagerApp(KdxPluginInfo pluginInfo) 
 	throws IOException 
 	{
 		super(new BorderLayout());
@@ -332,7 +332,7 @@ public class TrialManagerPanel extends JPanel implements TrialExplorerManager, K
 	}
 
     private void openJdbcExplorer() {
-        MsgBox.info(TrialManagerPanel.this, "Not Yet Ready", "Explore Database");
+        MsgBox.info(TrialManagerApp.this, "Not Yet Ready", "Explore Database");
 //        KdxploreDatabase kdxdb = offlineData.getKdxploreDatabase();
 //        if (kdxdb != null) {
 //            if (kdxdb instanceof JdbcKDXploreDatabase) {
@@ -567,7 +567,7 @@ public class TrialManagerPanel extends JPanel implements TrialExplorerManager, K
                     
                     String errmsg = lastCause==null ? "" : lastCause.getMessage(); //$NON-NLS-1$
                     GuiUtil.errorMessage(
-                            TrialManagerPanel.this,
+                            TrialManagerApp.this,
                             Msg.ERRMSG_CHECK_MESSSAGES_URL_CAUSE(result.dbUrl, errmsg),
                             OfflineData.LOADING_OFFLINE_REFERENCE_DATA_ERROR());
                 }
@@ -599,7 +599,7 @@ public class TrialManagerPanel extends JPanel implements TrialExplorerManager, K
                 if (chosen==null) {
                     chosen = selectionValues[0];
                 }
-                Object answer = JOptionPane.showInputDialog(TrialManagerPanel.this, 
+                Object answer = JOptionPane.showInputDialog(TrialManagerApp.this, 
                         Msg.MSG_CHOOSE_DATABASE_TO_OPEN_DEFAULT(chosen.toString()), 
                         Msg.TITLE_MULTIPLE_DATABASES_FOUND(),
                         JOptionPane.QUESTION_MESSAGE, 

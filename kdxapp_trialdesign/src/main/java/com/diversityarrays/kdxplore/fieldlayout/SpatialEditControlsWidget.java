@@ -1,17 +1,17 @@
 /*
     KDXplore provides KDDart Data Exploration and Management
     Copyright (C) 2015,2016,2017  Diversity Arrays Technology, Pty Ltd.
-    
+
     KDXplore may be redistributed and may be modified under the terms
     of the GNU General Public License as published by the Free Software
     Foundation, either version 3 of the License, or (at your option)
     any later version.
-    
+
     KDXplore is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
-    
+
     You should have received a copy of the GNU General Public License
     along with KDXplore.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -85,12 +85,12 @@ public class SpatialEditControlsWidget {
     private IterableAlg iterableAlg;
 
     private boolean justDoneInit = false;
-    private final Action assignSpatialsAction = new AbstractAction(">" + UnicodeChars.ELLIPSIS) {
+    private final Action assignSpatialsAction = new AbstractAction("Assign Spatials") {
         @Override
         public void actionPerformed(ActionEvent e) {
 
             PlantingBlock<ReplicateCellContent> pb = replicateDetailsModel.getPlantingBlock();
-            if (pb.getContentCount() > 0) {
+            if (pb.getContentCount(null) > 0) {
                 if (! justDoneInit) {
                     if (JOptionPane.YES_NO_OPTION
                             !=

@@ -24,7 +24,7 @@ import com.diversityarrays.kdxplore.services.KdxPluginInfo;
 public class TrialExplorerAppService implements KdxAppService {
     @Override
     public KdxApp createKdxApp(KdxPluginInfo pluginInfo) throws Exception {
-        return new TrialManagerPanel(pluginInfo);
+        return new TrialManagerApp(pluginInfo);
     }
 
 }

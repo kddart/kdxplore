@@ -36,6 +36,9 @@ RESOURCES=src/main/resources
 
 SRCDIRS=$(JAVA_SRC) $(RESOURCES)
 
+ifeq ($(JAVAC_DEBUG_FLAG),)
+	JAVAC_DEBUG_FLAG=-g:lines
+endif
 JAVAC_ARGS=$(JAVAC_DEBUG_FLAG) -d $(CLASSES) \
 		-classpath $(CLASSPATH) \
 		-sourcepath $(subst $(SPACE),:,$(SRCDIRS))

@@ -1,17 +1,17 @@
 /*
     KDXplore provides KDDart Data Exploration and Management
     Copyright (C) 2015,2016,2017  Diversity Arrays Technology, Pty Ltd.
-    
+
     KDXplore may be redistributed and may be modified under the terms
     of the GNU General Public License as published by the Free Software
     Foundation, either version 3 of the License, or (at your option)
     any later version.
-    
+
     KDXplore is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
-    
+
     You should have received a copy of the GNU General Public License
     along with KDXplore.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -40,7 +40,6 @@ import com.diversityarrays.dalclient.DALClient;
 import com.diversityarrays.dalclient.DalLoginException;
 import com.diversityarrays.dalclient.DalResponse;
 import com.diversityarrays.dalclient.DalResponseException;
-import com.diversityarrays.dalclient.HttpResponseInfo;
 import com.diversityarrays.dalclient.PostBuilder;
 import com.diversityarrays.dalclient.QueryBuilder;
 import com.diversityarrays.dalclient.ResponseType;
@@ -66,17 +65,17 @@ public class DefaultDALClientProvider implements DALClientProvider {
 		this.loginUrlsProvider = lup;
 		this.brandingComponent = brandingComponent;
 	}
-	
+
 	@Override
 	public void setDefaultOwner(Window owner) {
 		this.defaultOwner = owner;
 	}
-	
+
 	@Override
 	public void setCanChangeUrl(boolean enable) {
 	    this.canChangeUrl = enable;
 	}
-	
+
 	@Override
     public boolean getCanChangeUrl() {
 	    return canChangeUrl;
@@ -86,7 +85,7 @@ public class DefaultDALClientProvider implements DALClientProvider {
 	public void setInitialClientUrl(String clientUrl) {
 		this.initialClientUrl = clientUrl;
 	}
-	
+
 	@Override
 	public void setInitialClientUsername(String username) {
 		this.initialClientUsername = username;
@@ -96,22 +95,22 @@ public class DefaultDALClientProvider implements DALClientProvider {
 	public DALClient getDALClient() {
 		return getDALClient(defaultOwner, null);
 	}
-	
+
 	@Override
 	public DALClient getDALClient(String dialogTitle) {
 		return getDALClient(defaultOwner, dialogTitle);
 	}
-	
+
 	@Override
 	public DALClient getDALClient(Window owner, String dialogTitle) {
-		
-		
+
+
 		if (client==null) {
 			Window useOwner = owner!=null ? owner : defaultOwner;
-			
+
 			String title = dialogTitle;
 			if (title==null) {
-				
+
 				if (useOwner != null && useOwner instanceof Frame) {
 					title = ((Frame) useOwner).getTitle();
 				}
@@ -119,18 +118,18 @@ public class DefaultDALClientProvider implements DALClientProvider {
 					title = "KDDart Login"; //$NON-NLS-1$
 				}
 			}
-			
+
 			LoginDialog loginDialog = new LoginDialog(useOwner, title, loginUrlsProvider);
 			loginDialog.setUseUrlField(! canChangeUrl);
 			if (brandingComponent!=null) {
 				loginDialog.addBrandingComponent(brandingComponent);
 			}
-			
+
 			loginDialog.setInitialUrl(initialClientUrl);
 			loginDialog.setInitialUsername(initialClientUsername);
-			
+
 			loginDialog.setVisible(true);
-			
+
 			DALClient tmp = loginDialog.getDALClient();
 			if (tmp != null) {
 				client = new ProxyClient(tmp);
@@ -146,12 +145,12 @@ public class DefaultDALClientProvider implements DALClientProvider {
 			handleProxyLogout(client);
 		}
 	}
-	
+
 	@Override
 	public LoginUrlsProvider getLoginUrlsProvider() {
 	    return loginUrlsProvider;
 	}
-	
+
 	protected void handleProxyLogout(ProxyClient proxy) {
 
 		if (proxy != null) {
@@ -175,22 +174,16 @@ public class DefaultDALClientProvider implements DALClientProvider {
 
 	private ChangeEvent changeEvent = new ChangeEvent(this);
 	protected EventListenerList listenerList = new EventListenerList();
-	
+
 	protected void fireStateChanged() {
 
 		if  (SwingUtilities.isEventDispatchThread()) {
 			// We want to run OUTSIDE the event dispatch thread.
-			new Thread(new Runnable() {
-				@Override
-				public void run() {
-					fireStateChanged();
-				}
-			}).start();
-			
+			new Thread(() -> fireStateChanged()).start();
 			return;
 		}
-		
-		
+
+
 		for (ChangeListener l : listenerList.getListeners(ChangeListener.class)) {
 			try {
 				l.stateChanged(changeEvent);
@@ -204,12 +197,12 @@ public class DefaultDALClientProvider implements DALClientProvider {
 			}
 		}
 	}
-	
+
 	@Override
 	public void addChangeListener(ChangeListener l) {
 		listenerList.add(ChangeListener.class, l);
 	}
-	
+
 	@Override
 	public void removeChangeListener(ChangeListener l) {
 		listenerList.remove(ChangeListener.class, l);
@@ -221,7 +214,7 @@ public class DefaultDALClientProvider implements DALClientProvider {
 			clientVersion = "Unknown-version"; //$NON-NLS-1$
 			try {
 				DalResponse versionResponse = client.performQuery("get/version"); //$NON-NLS-1$
-				clientVersion = 
+				clientVersion =
 						versionResponse.getRecordFieldValue(DALClient.TAG_INFO, DALClient.ATTR_VERSION);
 			} catch (DalResponseException e) {
 				e.printStackTrace();
@@ -233,89 +226,108 @@ public class DefaultDALClientProvider implements DALClientProvider {
 	}
 
 	class ProxyClient implements DALClient {
-		
+
 		final DALClient wrapped;
-		
+
 		ProxyClient(DALClient c) {
 			this.wrapped = c;
 		}
 
+		@Override
 		public String getBaseUrl() {
 			return wrapped.getBaseUrl();
 		}
 
+		@Override
 		public DALClient setResponseType(ResponseType responseType) {
 			return wrapped.setResponseType(responseType);
 		}
 
+		@Override
 		public ResponseType getResponseType() {
 			return wrapped.getResponseType();
 		}
 
+		@Override
 		public DALClient setAutoSwitchGroupOnLogin(boolean switchGroup) {
 			return wrapped.setAutoSwitchGroupOnLogin(switchGroup);
 		}
 
+		@Override
 		public boolean getAutoSwitchGroupOnLogin() {
 			return wrapped.getAutoSwitchGroupOnLogin();
 		}
 
+		@Override
 		public void setSessionExpiryOption(
 				SessionExpiryOption sessionExpiryOption) {
 			wrapped.setSessionExpiryOption(sessionExpiryOption);
 		}
 
+		@Override
 		public SessionExpiryOption getSessionExpiryOption() {
 			return wrapped.getSessionExpiryOption();
 		}
 
+		@Override
 		public boolean isLoggedIn() {
 			return wrapped.isLoggedIn();
 		}
 
+		@Override
 		public void login(String username, String password) throws IOException,
 				DalLoginException, DalResponseException {
 			wrapped.login(username, password);
 		}
 
+		@Override
 		public void logout() {
 			handleProxyLogout(this);
 		}
 
+		@Override
 		public String switchGroup(String groupId) throws IOException,
 				DalResponseException {
 			return wrapped.switchGroup(groupId);
 		}
 
+		@Override
 		public String getUserId() {
 			return wrapped.getUserId();
 		}
 
+		@Override
 		public String getUserName() {
 			return wrapped.getUserName();
 		}
 
+		@Override
 		public String getWriteToken() {
 			return wrapped.getWriteToken();
 		}
 
+		@Override
 		public boolean isInAdminGroup() {
 			return wrapped.isInAdminGroup();
 		}
 
+		@Override
 		public String getGroupName() {
 			return wrapped.getGroupName();
 		}
 
+		@Override
 		public String getGroupId() {
 			return wrapped.getGroupId();
 		}
 
+		@Override
 		public DalResponse performQuery(String command) throws IOException,
 				DalResponseException {
 			return wrapped.performQuery(command);
 		}
 
+		@Override
 		public QueryBuilder prepareQuery(String command) {
 			return wrapped.prepareQuery(command);
 		}
@@ -329,23 +341,27 @@ public class DefaultDALClientProvider implements DALClientProvider {
 		public PostBuilder preparePostQuery(String command) {
 			return wrapped.preparePostQuery(command);
 		}
-		
+
+		@Override
 		public DalResponse performUpdate(String command,
 				Map<String, String> postParameters) throws IOException,
 				DalResponseException {
 			return wrapped.performUpdate(command, postParameters);
 		}
 
+		@Override
 		public UpdateBuilder prepareUpdate(String command) {
 			return wrapped.prepareUpdate(command);
 		}
 
+		@Override
 		public DalResponse performUpload(String command,
 				Map<String, String> postParameters, File upload)
 				throws FileNotFoundException, IOException, DalResponseException {
 			return wrapped.performUpload(command, postParameters, upload);
 		}
 
+		@Override
 		public DalResponse performUpload(String command,
 				Map<String, String> postParameters,
 				Factory<InputStream> streamFactory)
@@ -354,25 +370,30 @@ public class DefaultDALClientProvider implements DALClientProvider {
 					.performUpload(command, postParameters, streamFactory);
 		}
 
+		@Override
 		public UpdateBuilder prepareUpload(String command, File upload) {
 			return wrapped.prepareUpload(command, upload);
 		}
 
+		@Override
 		public UpdateBuilder prepareUpload(String command,
 				Factory<InputStream> streamFactory) {
 			return wrapped.prepareUpload(command, streamFactory);
 		}
 
+		@Override
 		public PostBuilder prepareExport(String command) {
 			return wrapped.prepareExport(command);
 		}
 
+		@Override
 		public DalResponse performExport(String command,
 				Map<String, String> postParameters) throws IOException,
 				DalResponseException {
 			return wrapped.performExport(command, postParameters);
 		}
 
+		@Override
 		public void setLog(Log log) {
 			wrapped.setLog(log);
 		}
@@ -381,6 +402,5 @@ public class DefaultDALClientProvider implements DALClientProvider {
 		public List<HttpCookie> getHttpCookies() throws IllegalStateException {
 			return wrapped.getHttpCookies();
 		}
-
 	}
 }

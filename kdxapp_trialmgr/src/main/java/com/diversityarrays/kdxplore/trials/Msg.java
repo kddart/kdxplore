@@ -1,17 +1,17 @@
 /*
     KDXplore provides KDDart Data Exploration and Management
     Copyright (C) 2015,2016,2017  Diversity Arrays Technology, Pty Ltd.
-    
+
     KDXplore may be redistributed and may be modified under the terms
     of the GNU General Public License as published by the Free Software
     Foundation, either version 3 of the License, or (at your option)
     any later version.
-    
+
     KDXplore is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
-    
+
     You should have received a copy of the GNU General Public License
     along with KDXplore.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -22,15 +22,15 @@ import com.diversityarrays.util.AbstractMsg;
 @SuppressWarnings("nls")
 public class Msg extends AbstractMsg {
     static private final Msg i = new Msg();
-    
+
     public static final String ACTION_USE_ALL() {
         return i.getString("ACTION_USE_ALL");
     }
-    
+
     public static final String ACTION_USE_NONE() {
         return i.getString("ACTION_USE_NONE");
     }
-    
+
     public static final String ACTION_CANCEL() {
         return i.getString("ACTION_CANCEL");
     }
@@ -38,7 +38,23 @@ public class Msg extends AbstractMsg {
     public static final String ACTION_CREATE() {
         return i.getString("ACTION_CREATE");
     }
-    
+
+	public static String ACTION_GENERATE_BARCODES() {
+		return i.getString("ACTION_GENERATE_BARCODES");
+	}
+
+	public static String ACTION_PRINT_TRAIT_BARCODES() {
+		return i.getString("ACTION_PRINT_TRAIT_BARCODES");
+	}
+
+	public static String ACTION_PRINT_PLOT_BARCODES() {
+		return i.getString("ACTION_PRINT_PLOT_BARCODES");
+	}
+
+	public static String ACTION_PRINT_INDIV_BARCODES() {
+		return i.getString("ACTION_PRINT_INDIV_BARCODES");
+	}
+
     public static final String COLHDG_ADD() {
         return i.getString("COLHDG_ADD");
     }
@@ -63,7 +79,7 @@ public class Msg extends AbstractMsg {
     public static final String COLHDG_INSTANCE_NUMBERS() {
         return i.getString("COLHDG_INSTANCE_NUMBERS");
     }
-    
+
     public static String HTML_DOUBLE_CLICK_TO_CHANGE_INSTANCE_COUNT() {
         return i.getString("HTML_DOUBLE_CLICK_TO_CHANGE_INSTANCE_COUNT");
     }
@@ -71,25 +87,25 @@ public class Msg extends AbstractMsg {
     public static final String ERRMSG_MISSING_DEVICE_ID(String deviceId) {
         return i.getString("ERRMSG_MISSING_DEVICE_ID", deviceId);
     }
-    
+
     public static final String ERRMSG_INTERNAL_ERROR_MISSING_TRAIT(int traitId) {
         return i.getString("ERRMSG_INTERNAL_ERROR_MISSING_TRAIT", traitId);
     }
-    
+
     public static final String ERRTITLE_ERROR(String title) {
         return i.getString("ERRTITLE_ERROR", title);
     }
     public static final String ERRTITLE_INTERNAL_ERROR(String title) {
         return i.getString("ERRTITLE_INTERNAL_ERROR", title);
     }
-    
+
     public static final String PROMPT_DESC_FOR_SCORING_SET() {
         return i.getString("PROMPT_DESC_FOR_SCORING_SET");
     }
     public static final String PROMPT_ENTER_FILTER_STRING() {
         return i.getString("PROMPT_ENTER_FILTER_STRING");
     }
-    
+
     public static final String MSG_THERE_ARE_NO_CURATED_SAMPLES() {
         return i.getString("MSG_THERE_ARE_NO_CURATED_SAMPLES");
     }
@@ -103,14 +119,14 @@ public class Msg extends AbstractMsg {
     public static final String OPTION_CURATED_SAMPLE_VALUES() {
         return i.getString("OPTION_CURATED_SAMPLE_VALUES");
     }
-    
+
     public static final String TITLE_ADD_SCORING_SET() {
         return i.getString("TITLE_ADD_SCORING_SET");
     }
     public static final String TITLE_ADD_TRAITS_TO_TRIAL(String trialName) {
         return i.getString("TITLE_ADD_TRAITS_TO_TRIAL", trialName);
     }
-    
+
     public static String ENUM_NO_TRIAL_UNIT_LOAD_FROM_DB() {
         return i.getString("ENUM_NO_TRIAL_UNIT_LOAD_FROM_DB");
     }
@@ -203,4 +219,5 @@ public class Msg extends AbstractMsg {
     public static String LABEL_NO_TRIAL_SELECTED() {
         return i.getString("LABEL_NO_TRIAL_SELECTED");
     }
+
 }

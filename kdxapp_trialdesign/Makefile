@@ -32,9 +32,8 @@ LIB_JARS=javax.persistence-2.0.0.jar \
 	kdxos_common.jar \
 	kdx_kddart_helper.jar \
 	kdx_kddart_schbase.jar \
-	kdx_kddart_schema.jar
-
-
+	kdx_kddart_schema.jar \
+	kdx_tdalg.jar
 
 
 KDX_JARS=kdxos_clientlib.jar \
@@ -58,6 +57,9 @@ RESOURCES=src/main/resources
 
 SRCDIRS=$(JAVA_SRC) $(RESOURCES)
 
+ifeq ($(JAVAC_DEBUG_FLAG),)
+	JAVAC_DEBUG_FLAG=-g:lines
+endif
 JAVAC_ARGS=$(JAVAC_DEBUG_FLAG) -d $(CLASSES) \
 		-classpath $(CLASSPATH) \
 		-sourcepath $(subst $(SPACE),:,$(SRCDIRS))

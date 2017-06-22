@@ -1,17 +1,17 @@
 /*
     KDXplore provides KDDart Data Exploration and Management
     Copyright (C) 2015,2016,2017  Diversity Arrays Technology, Pty Ltd.
-    
+
     KDXplore may be redistributed and may be modified under the terms
     of the GNU General Public License as published by the Free Software
     Foundation, either version 3 of the License, or (at your option)
     any later version.
-    
+
     KDXplore is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
-    
+
     You should have received a copy of the GNU General Public License
     along with KDXplore.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -51,7 +51,7 @@ public class TrialDesignPreferences extends KdxAppPreferences{
     static {
         Map<String, String> map = new HashMap<>();
 
-//        map.put("algorithm", "Algorithm"); //$NON-NLS-1$ //$NON-NLS-2$
+        map.put("algorithm", "Algorithm"); //$NON-NLS-1$ //$NON-NLS-2$
         map.put("manual", "Manual Design"); //$NON-NLS-1$ //$NON-NLS-2$
 
         BRANCH_NAME_BY_PATH_COMPONENT = Collections.unmodifiableMap(map);
@@ -61,17 +61,17 @@ public class TrialDesignPreferences extends KdxAppPreferences{
         return singleton;
     }
 
-//    private final KdxPreference<String> RSCRIPT_PATH = new KdxPreference<>(
-//            TrialDesignPreferences.class, String.class,
-//            new MessageId("Location of Rscript exectable"), //$NON-NLS-1$
-//            "algorithm/rscriptPath",  //$NON-NLS-1$
-//            ""); //$NON-NLS-1$
+    private final KdxPreference<String> RSCRIPT_PATH = new KdxPreference<>(
+            TrialDesignPreferences.class, String.class,
+            new MessageId("Location of Rscript exectable"), //$NON-NLS-1$
+            "algorithm/rscriptPath",  //$NON-NLS-1$
+            ""); //$NON-NLS-1$
 
     private final KdxPreference<String> SPATIAL_ENTRY_TYPE_NAME = new KdxPreference<>(
             TrialDesignPreferences.class, String.class,
             new MessageId("Name for Spatial Checks Entry Type"), //$NON-NLS-1$
             "manual/spatialCheckEntryType",  //$NON-NLS-1$
-            "Spatial", //$NON-NLS-1$
+            "Spatial Check", //$NON-NLS-1$
             SPATIAL_CHECKS_VALIDATOR);
 
     private final KdxPreference<String> NORMAL_ENTRY_TYPE_NAME = new KdxPreference<>(
@@ -81,13 +81,13 @@ public class TrialDesignPreferences extends KdxAppPreferences{
             "Entry", //$NON-NLS-1$
             SPATIAL_CHECKS_VALIDATOR);
 
-//    public String getRscriptPath() {
-//        return getPreferenceValue(RSCRIPT_PATH);
-//    }
-//
-//    public void setRscriptPath(String value) {
-//        savePreferenceValue(RSCRIPT_PATH, value);
-//    }
+    public String getRscriptPath() {
+        return getPreferenceValue(RSCRIPT_PATH);
+    }
+
+    public void setRscriptPath(String value) {
+        savePreferenceValue(RSCRIPT_PATH, value);
+    }
 
     public String getSpatialEntryName() {
         return getPreferenceValue(SPATIAL_ENTRY_TYPE_NAME);
@@ -95,6 +95,10 @@ public class TrialDesignPreferences extends KdxAppPreferences{
 
     public String getNormalEntryTypeName() {
         return getPreferenceValue(NORMAL_ENTRY_TYPE_NAME);
+    }
+
+    public void setNormalEntryTypeName(String value) {
+    	savePreferenceValue(NORMAL_ENTRY_TYPE_NAME, value);
     }
 
 

@@ -1,17 +1,17 @@
 /*
     KDXplore provides KDDart Data Exploration and Management
     Copyright (C) 2015,2016,2017  Diversity Arrays Technology, Pty Ltd.
-    
+
     KDXplore may be redistributed and may be modified under the terms
     of the GNU General Public License as published by the Free Software
     Foundation, either version 3 of the License, or (at your option)
     any later version.
-    
+
     KDXplore is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
-    
+
     You should have received a copy of the GNU General Public License
     along with KDXplore.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -25,7 +25,6 @@ package com.diversityarrays.util;
  *
  * Possibly useful are:
  *
- *
  * http://en.wikipedia.org/wiki/Supplemental_Arrows-A
  * http://en.wikipedia.org/wiki/Supplemental_Arrows-B
  * http://en.wikipedia.org/wiki/Miscellaneous_Symbols_and_Arrows
@@ -35,7 +34,7 @@ package com.diversityarrays.util;
  *
  * Crossing:  26a2 f/f
  *            26a3 m/m
- *            26a4 m/f
+ *            26a4 m/f ⚤
  *            26a5  hermaphrodite fem-S/male-NE
  *            26a6 trans  (fem/male)-NE
  *
@@ -100,7 +99,7 @@ package com.diversityarrays.util;
  *
  * 262F ☯ Yin/Yang == Balance
  *
- *
+ * 2295 ⊕ Plus in circle - used as "self"
  * 2640 ♀ Female sign
  * 2641 ♁ Earth
  * 2642 ♂ Male sign
@@ -375,10 +374,20 @@ package com.diversityarrays.util;
  * 8/8: 2588
  *
  */
+@SuppressWarnings("nls")
 public class UnicodeChars {
 
-    public static final String ELLIPSIS = "\u2026"; // …
+	public static final String MAC_COMMAND_KEY = "\u2318"; // ⌘
+	public static final String ALPHA = "\u03b1"; // α
+	public static final String BETA = "\u03b2"; // β
 
+	public static final String SIGN__SELF   = "\u2295"; // ⊕ Plus in circle - used as "self"
+	public static final String SIGN_FEMALE = "\u2640"; // ♀ Female sign
+	public static final String SIGN_MALE   = "\u2642"; // ♂ Male sign
+	public static final String SIGN_FEMALE_MALE = "\u26a4"; // ⚤
+
+    public static final String ELLIPSIS = "\u2026"; // …
+//  public static final String SEARCH = "\u2315"; // ⌕
     public static final String WHITE_FLAG = "\u2690"; // ⚐
     public static final String BLACK_FLAG = "\u2691"; // ⚑
 
@@ -403,6 +412,10 @@ public class UnicodeChars {
     public static final String BLACK_STAR = "\u2605"; // ★
     public static final String WHITE_STAR = "\u2606"; // ☆
 
+    public static final String FLOWER = "\u2698"; // ⚘
+
+    public static final String PLUS = "\u2795"; // ➕
+
     public static final String CANCEL_CROSS = "\u2718"; // ✘
     public static final String CONFIRM_TICK = "\u2713"; // ✓
 
@@ -413,6 +426,11 @@ public class UnicodeChars {
 
     public static final String CAUTION = "\u26A0"; // ⚠
     public static final String SKULL_XBONE = "\u2620"; // ☠
+
+    public static final String DIRN_UP    = "\u2191"; // ↑
+    public static final String DIRN_DOWN  = "\u2193"; // ↓
+    public static final String DIRN_LEFT  = "\u2190"; // ←
+    public static final String DIRN_RIGHT = "\u2192"; // →
 
     public static final String DOTTED_CIRCLE = "\u25CC"; // ◌
 

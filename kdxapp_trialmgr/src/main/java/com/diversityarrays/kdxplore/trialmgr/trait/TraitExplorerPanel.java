@@ -1,17 +1,17 @@
 /*
     KDXplore provides KDDart Data Exploration and Management
     Copyright (C) 2015,2016,2017  Diversity Arrays Technology, Pty Ltd.
-    
+
     KDXplore may be redistributed and may be modified under the terms
     of the GNU General Public License as published by the Free Software
     Foundation, either version 3 of the License, or (at your option)
     any later version.
-    
+
     KDXplore is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
-    
+
     You should have received a copy of the GNU General Public License
     along with KDXplore.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -173,14 +173,14 @@ public class TraitExplorerPanel extends JPanel implements TraitExplorer {
 			handleTraitUpload(traits);
 		}
 	};
-	
+
 	private final Action exportTraitsAction = new AbstractAction() {
         @Override
         public void actionPerformed(ActionEvent e) {
             List<Trait> traits = collectTraitsForUploadOrExport();
             TraitExportDialog dlg = new TraitExportDialog(GuiUtil.getOwnerWindow(TraitExplorerPanel.this), traits);
             dlg.setVisible(true);
-        }  
+        }
 	};
 
 	private final SourceChoiceHandler sourceChoiceHandler = new SourceChoiceHandler() {
@@ -203,7 +203,7 @@ public class TraitExplorerPanel extends JPanel implements TraitExplorer {
 	private final Action importTraitsAction = new AbstractAction() {
 		@Override
 		public void actionPerformed(ActionEvent e) {
-		    
+
 		    SourceChoice[] choices;
 		    if (KdxploreConfig.getInstance().getModeList().contains("CIMMYT")) { //$NON-NLS-1$
 		        choices = new SourceChoice[] { SourceChoice.CSV };
@@ -211,9 +211,9 @@ public class TraitExplorerPanel extends JPanel implements TraitExplorer {
 		    else {
 		        choices = new SourceChoice[] { SourceChoice.DATABASE, SourceChoice.CSV };
 		    }
-			SourceChoiceHandler.Util.showSourceChoicePopup(importTraitsButton, 
+			SourceChoiceHandler.Util.showSourceChoicePopup(importTraitsButton,
 			        0,
-			        0, 
+			        0,
 			        "Select source for Trait data",
 					sourceChoiceHandler, choices);
 		}
@@ -361,15 +361,15 @@ public class TraitExplorerPanel extends JPanel implements TraitExplorer {
 			// Trait becomes TraitLevel.SPECIMEN)
 			// (2) Convert Sub-Plot Samples to Plot Samples (and Trait becomes
 			// TraitLevel.PLOT)
-		    
+
 		    if (traitsToRepair == null || traitsToRepair.traits.isEmpty()) {
 	            MsgBox.warn(TraitExplorerPanel.this, "Nothing to do", "Repair Trait Levels");
 	            fixTraitLevelsButton.setVisible(false);
 	            return;
 		    }
-		    
-		    BackgroundTask<Map<Trait,String>, Pair<Trait, Either<Exception, String>>> task = 
-		            new BackgroundTask<Map<Trait,String>, Pair<Trait,Either<Exception,String>>>("", false) 
+
+		    BackgroundTask<Map<Trait,String>, Pair<Trait, Either<Exception, String>>> task =
+		            new BackgroundTask<Map<Trait,String>, Pair<Trait,Either<Exception,String>>>("", false)
 		    {
                 @Override
                 public Map<Trait,String> generateResult(
@@ -409,7 +409,7 @@ public class TraitExplorerPanel extends JPanel implements TraitExplorer {
                     traitsTable.repaint();
                 }
             };
-            
+
             backgroundRunner.runBackgroundTask(task);
 		}
 	};
@@ -467,14 +467,14 @@ public class TraitExplorerPanel extends JPanel implements TraitExplorer {
 	private final PropertiesTableLegendPanel legendPanel = new PropertiesTableLegendPanel(traitPropertiesTable);
 
 	private OfflineData offlineData;
-	
+
 	private final EntityChangeListener<Trait> traitChangeListener = new EntityChangeListener<Trait>() {
-        
+
         @Override
         public Class<Trait> getEntityClass() {
             return Trait.class;
         }
-    
+
         @Override
         public void entityAdded(KDSmartDatabase db, Trait t) {
             int modelRow = traitTableModel.addTrait(t);
@@ -486,17 +486,17 @@ public class TraitExplorerPanel extends JPanel implements TraitExplorer {
                 }
             }
         }
-    
+
         @Override
         public void entityChanged(KDSmartDatabase db, Trait t) {
             traitTableModel.traitChanged(t);
         }
-    
+
         @Override
         public void entitiesRemoved(KDSmartDatabase db, Set<Integer> ids) {
             traitTableModel.removeTraits(ids);
         }
-    
+
         @Override
         public void listChanged(KDSmartDatabase db, int nChanges) {
             try {
@@ -570,18 +570,18 @@ public class TraitExplorerPanel extends JPanel implements TraitExplorer {
 	};
 
 	private final Transformer<Trial, Boolean> checkIfEditorActive;
-	
+
 	private TraitsToRepair traitsToRepair;
 
 	private final DartSchemaHelper schemaHepler = new DartSchemaHelper(
 			KDDartEntityFactory.Util.getInstance().newCoreSchema());;
-	
+
 	public TraitExplorerPanel(
-			MessagePrinter mp, 
-			OfflineData od, 
+			MessagePrinter mp,
+			OfflineData od,
 			DALClientProvider clientProvider,
 			// KdxUploadHandler uploadHandler,
-			BackgroundRunner backgroundRunner, 
+			BackgroundRunner backgroundRunner,
 			ImageIcon addBarcodeIcon,
 			Transformer<Trial, Boolean> checkIfEditorActive) {
 		super(new BorderLayout());
@@ -609,7 +609,7 @@ public class TraitExplorerPanel extends JPanel implements TraitExplorer {
 				updateUndoRedoActions();
 			}
 		});
-		
+
 		KDClientUtils.initAction(ImageId.TRASH_24, deleteTraitsAction, "Remove Trait");
 		deleteTraitsAction.setEnabled(false);
 
@@ -620,7 +620,7 @@ public class TraitExplorerPanel extends JPanel implements TraitExplorer {
 		KDClientUtils.initAction(ImageId.UPLOAD_24, uploadTraitsAction, "Upload Traits");
 
 		KDClientUtils.initAction(ImageId.ADD_TRIALS_24, importTraitsAction, "Import Traits");
-		
+
 		KDClientUtils.initAction(ImageId.EXPORT_24, exportTraitsAction, "Export Traits");
 
 		try {
@@ -666,7 +666,7 @@ public class TraitExplorerPanel extends JPanel implements TraitExplorer {
 				if (SwingUtilities.isLeftMouseButton(e)) {
 					KdxPreference<Color> pref = TrialManagerPreferences.BAD_FOR_CALC;
 					String title = pref.getName();
-					KdxplorePreferenceEditor.startEditorDialog((JComponent) TraitExplorerPanel.this, title, pref);
+					KdxplorePreferenceEditor.startEditorDialog(TraitExplorerPanel.this, title, pref);
 				}
 			}
 		});
@@ -740,15 +740,15 @@ public class TraitExplorerPanel extends JPanel implements TraitExplorer {
 		cardPanel.add(selectTraitComponent, CARD_SELECT_TO_EDIT);
 		cardPanel.add(new JScrollPane(traitPropertiesTable), CARD_TRAIT_EDITOR);
 
-        JButton undoButton = initAction(undoAction, ImageId.UNDO_24, "Undo", 
+        JButton undoButton = initAction(undoAction, ImageId.UNDO_24, "Undo",
                 KeyStroke.getKeyStroke('Z', Toolkit.getDefaultToolkit ().getMenuShortcutKeyMask()));
-        JButton redoButton = initAction(redoAction, ImageId.REDO_24, "Redo", 
+        JButton redoButton = initAction(redoAction, ImageId.REDO_24, "Redo",
                 KeyStroke.getKeyStroke('Y', Toolkit.getDefaultToolkit ().getMenuShortcutKeyMask()));
 		Box undoRedoButtons = Box.createHorizontalBox();
         undoRedoButtons.add(undoButton);
         undoRedoButtons.add(redoButton);
 
-		
+
 		JPanel detailsPanel = new JPanel(new BorderLayout());
 		detailsPanel.add(GuiUtil.createLabelSeparator("Details", undoRedoButtons), BorderLayout.NORTH);
 		detailsPanel.add(cardPanel, BorderLayout.CENTER);
@@ -818,17 +818,17 @@ public class TraitExplorerPanel extends JPanel implements TraitExplorer {
 
 		add(splitPane, BorderLayout.CENTER);
 	}
-	
-	private JButton initAction(Action action, ImageId imageId, String toolTip, KeyStroke keyStroke) {	    
+
+	private JButton initAction(Action action, ImageId imageId, String toolTip, KeyStroke keyStroke) {
 	    KDClientUtils.initAction(imageId, action, toolTip, false);
 	    action.setEnabled(false);
-	    
+
 	    String command = action.toString();
 
 	    JButton result = new JButton(action);
 	    result.getActionMap().put(command, action);
 	    result.getInputMap(JComponent.WHEN_FOCUSED).put(keyStroke, command);
-	       
+
 	    return result;
 	}
 
@@ -840,12 +840,12 @@ public class TraitExplorerPanel extends JPanel implements TraitExplorer {
 			traitsTable.repaint();
 			traitTrialsTable.repaint();
 			traitPropertiesTable.repaint();
-		}	
+		}
 	};
-	
+
 	private List<Trait> collectTraitsForUploadOrExport() {
 	    List<Integer> modelRows = GuiUtil.getSelectedModelRows(traitsTable);
-        List<Trait> result = new ArrayList<Trait>();
+        List<Trait> result = new ArrayList<>();
 
         if (modelRows == null || modelRows.size() <= 0) {
             Collection<Trait> traits = traitTableModel.getTraitMap().values();
@@ -862,7 +862,7 @@ public class TraitExplorerPanel extends JPanel implements TraitExplorer {
         }
         return result;
 	}
-	
+
 	private Action redoAction = new AbstractAction("Redo") {
 		@Override
 		public void actionPerformed(ActionEvent e) {
@@ -871,9 +871,9 @@ public class TraitExplorerPanel extends JPanel implements TraitExplorer {
             traitsTable.repaint();
             traitTrialsTable.repaint();
             traitPropertiesTable.repaint();
-		}	
+		}
 	};
-	
+
 	private void updateUndoRedoActions() {
 		undoAction.setEnabled(getUndoCount() > 0);
 		redoAction.setEnabled(getRedoCount() > 0);
@@ -886,9 +886,9 @@ public class TraitExplorerPanel extends JPanel implements TraitExplorer {
 	private int getRedoCount() {
 		return changeManager.getRedoCount();
 	}
-	
+
 	private void checkForTraitLevels(KdxploreDatabase kdxdb) {
-	    
+
 	    traitsToRepair = null;
 	       // Assume nothing needs fixing
         fixTraitLevelsButton.setVisible(false);
@@ -919,7 +919,7 @@ public class TraitExplorerPanel extends JPanel implements TraitExplorer {
 		}
 
 		traitsToRepair = new TraitsToRepair(kdxdb, toBeFixed);
-		
+
 		// Step 2:
 		try {
 		    traitsToRepair.getProblemSampleCountByTrialId();
@@ -929,7 +929,7 @@ public class TraitExplorerPanel extends JPanel implements TraitExplorer {
                     "Error while checking for Problem Traits");
             return;
 		}
-		
+
 		if (traitsToRepair.isEmpty()) {
 		    traitsToRepair = null;
 		    fixTraitLevelsButton.setVisible(false);
@@ -939,7 +939,7 @@ public class TraitExplorerPanel extends JPanel implements TraitExplorer {
 		// Ok. There are some !
 		// Step 3:
 		fixTraitLevelsButton.setVisible(true);
-	
+
 		messagePrinter.println(traitsToRepair.getDescription());
 	}
 
@@ -974,7 +974,7 @@ public class TraitExplorerPanel extends JPanel implements TraitExplorer {
             editingLocked.setIcon(KDClientUtils.getIcon(ImageId.LOCKED));
             editingLocked.setForeground(Color.BLACK);
             editingLocked.setText(EDITABLE_LOCKED);
-            traitsEditable = false;         
+            traitsEditable = false;
 		}
 		else {
 			TrialManagerPreferences prefs = TrialManagerPreferences.getInstance();
@@ -990,14 +990,14 @@ public class TraitExplorerPanel extends JPanel implements TraitExplorer {
 
 			    if (JOptionPane.YES_OPTION
 			            ==
-			            JOptionPane.showConfirmDialog(this, dialogPanel, "Allow Trait Editing?", JOptionPane.YES_NO_OPTION)) 
+			            JOptionPane.showConfirmDialog(this, dialogPanel, "Allow Trait Editing?", JOptionPane.YES_NO_OPTION))
 			    {
 					editingLocked.setIcon(KDClientUtils.getIcon(ImageId.UNLOCKED));
 					editingLocked.setForeground(Color.RED);
 					editingLocked.setText(EDITABLE_UNLOCKED);
 					traitsEditable = true;
-				} 
-				
+				}
+
 				if (checkBox.isSelected()) {
                     prefs.setShowEditTraitWarning(false);
 				}
@@ -1284,13 +1284,13 @@ public class TraitExplorerPanel extends JPanel implements TraitExplorer {
 			Map<Trait,Boolean> conflictingTraits =
 					TraitUploadTask.checkTraitsForConflict(traitsToUpload,
 							clientProvider.getDALClient());
-			List<Trait> confirmedTraits = new ArrayList<Trait>();
+			List<Trait> confirmedTraits = new ArrayList<>();
 
 			confirmedTraits = traitsToUpload;
 
 			if (! conflictingTraits.isEmpty()) {
-				List<Trait> changeableTraits = new ArrayList<Trait>();
-				List<Trait> unChangeableTraits = new ArrayList<Trait>();
+				List<Trait> changeableTraits = new ArrayList<>();
+				List<Trait> unChangeableTraits = new ArrayList<>();
 
 				for (Trait trait : conflictingTraits.keySet()) {
 					System.out.println("Trait Name: " + trait.getTraitName());
@@ -1320,9 +1320,9 @@ public class TraitExplorerPanel extends JPanel implements TraitExplorer {
 			}
 
 			TraitUploadHandler uploadHandler = new TraitUploadHandler(offlineData.getKdxploreDatabase(), this.clientProvider, schemaHepler);
-			
+
 			TraitUploadTask task = new TraitUploadTask(TraitExplorerPanel.this,uploadHandler, traitsToUpload, dalClient);
-			
+
 			backgroundRunner.runBackgroundTask(task);
 		}
 	}
@@ -1390,18 +1390,18 @@ public class TraitExplorerPanel extends JPanel implements TraitExplorer {
 		return null;
 	}
 
-	private ChangeManager<Trait> changeManager = new ChangeManager<Trait>();
-	
+	private ChangeManager<Trait> changeManager = new ChangeManager<>();
+
 	private List<Changeable<Trait>> changeList = new ArrayList<>();
-	
+
 	private Consumer<TraitChangeable> changeConsumer = new Consumer<TraitChangeable>() {
 		@Override
 		public void accept(TraitChangeable t) {
-			changeList.add(t);		
+			changeList.add(t);
 			changeManager.addChangeable(changeList.get(changeList.size() - 1));
-		}		
+		}
 	};
-	
+
 	private void startEditingTraitInternal(Trait trait, Integer selectViewRow, PropertyDescriptor descriptor) {
 		if (traitsEditable) {
 			Trial edited = getFirstTrialBeingEdited(trait);
@@ -1441,7 +1441,7 @@ public class TraitExplorerPanel extends JPanel implements TraitExplorer {
 		    warnEditingLocked();
 		}
 	}
-	
+
 	private void warnEditingLocked() {
         MsgBox.warn(TraitExplorerPanel.this, "Click the '" + EDITABLE_LOCKED + "' icon to allow editing", "Editing is Disabled");
 	}
@@ -1454,9 +1454,9 @@ public class TraitExplorerPanel extends JPanel implements TraitExplorer {
 			int vrow = traitsTable.convertRowIndexToView(mrow);
 			if (vrow >= 0) {
 			    if (! traitsEditable) {
-			        if (JOptionPane.YES_OPTION != 
-			                JOptionPane.showConfirmDialog(TraitExplorerPanel.this, 
-			                        "Editing is locked. Do you want to proceed?", 
+			        if (JOptionPane.YES_OPTION !=
+			                JOptionPane.showConfirmDialog(TraitExplorerPanel.this,
+			                        "Editing is locked. Do you want to proceed?",
 			                        "Edit Trait " + trait.getTraitName(),
 			                JOptionPane.YES_NO_OPTION))
 			        {
@@ -1498,7 +1498,7 @@ public class TraitExplorerPanel extends JPanel implements TraitExplorer {
 
         KDSmartDatabase kdsDb = offlineData.getKdxploreDatabase().getKDXploreKSmartDatabase();
         List<Trait> okToDelete = new ArrayList<>();
-        Map<Trait, List<Trial>> dontDelete = new TreeMap<Trait, List<Trial>>();
+        Map<Trait, List<Trial>> dontDelete = new TreeMap<>();
 
         try {
 
@@ -1523,22 +1523,22 @@ public class TraitExplorerPanel extends JPanel implements TraitExplorer {
                     msg = s;
                 }
                 else {
-                    msg = HelpUtils.makeTableInScrollPane("Trait", "# Trials", 
+                    msg = HelpUtils.makeTableInScrollPane("Trait", "# Trials",
                             dontDelete.keySet(), dontDeleteNamer);
 //                    msg = HelpUtils.makeListInScrollPane(dontDelete.entrySet(), namer);
                 }
-                JOptionPane.showMessageDialog(TraitExplorerPanel.this, 
-                        msg, 
+                JOptionPane.showMessageDialog(TraitExplorerPanel.this,
+                        msg,
                         "None of the selected Traits may be removed",
                         JOptionPane.WARNING_MESSAGE);
             } else {
-                
+
                 Collections.sort(okToDelete);
-                
+
                 Box box = Box.createVerticalBox();
                 box.add(GuiUtil.createLabelSeparator("Traits to Remove"));
                 box.add(HelpUtils.makeListInScrollPane(okToDelete, Trait::getTraitName));
-                
+
                 if (! dontDelete.isEmpty()) {
                     if (dontDelete.size() == 1) {
 //                        box.add(GuiUtil.createLabelSeparator("These will not be removed"));
@@ -1547,7 +1547,7 @@ public class TraitExplorerPanel extends JPanel implements TraitExplorer {
                         }
                     }
                     else {
-                        JScrollPane sp = HelpUtils.makeTableInScrollPane("Trait", "# Trials", 
+                        JScrollPane sp = HelpUtils.makeTableInScrollPane("Trait", "# Trials",
                                 dontDelete.keySet(), dontDeleteNamer);
                         box.add(GuiUtil.createLabelSeparator("These will not be removed"));
                         box.add(sp);
@@ -1555,7 +1555,7 @@ public class TraitExplorerPanel extends JPanel implements TraitExplorer {
                 }
 
                 if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(TraitExplorerPanel.this,
-                        box, 
+                        box,
                         "Confirm Trait Removal", JOptionPane.YES_NO_OPTION)) {
                     int[] traitIds = new int[okToDelete.size()];
                     for (int index = okToDelete.size(); --index >= 0;) {
@@ -1570,11 +1570,11 @@ public class TraitExplorerPanel extends JPanel implements TraitExplorer {
         }
     }
 
-    private void checkOnTraitUsage(KDSmartDatabase db, 
-            Collection<Trait> traitsToCheck, 
+    private void checkOnTraitUsage(KDSmartDatabase db,
+            Collection<Trait> traitsToCheck,
             List<Trait> okToDelete,
-            Map<Trait, List<Trial>> dontDelete) 
-    throws IOException 
+            Map<Trait, List<Trial>> dontDelete)
+    throws IOException
     {
         Set<Integer> traitIds = new HashSet<>();
         for (Trait t : traitsToCheck) {

@@ -1,17 +1,17 @@
 /*
     KDXplore provides KDDart Data Exploration and Management
     Copyright (C) 2015,2016,2017  Diversity Arrays Technology, Pty Ltd.
-    
+
     KDXplore may be redistributed and may be modified under the terms
     of the GNU General Public License as published by the Free Software
     Foundation, either version 3 of the License, or (at your option)
     any later version.
-    
+
     KDXplore is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
-    
+
     You should have received a copy of the GNU General Public License
     along with KDXplore.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -48,12 +48,15 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -76,6 +79,8 @@ import javax.swing.JSeparator;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -101,6 +106,7 @@ import com.diversityarrays.ui.LoginUrlsProvider;
 import com.diversityarrays.ui.PropertiesLoginUrlsProvider;
 import com.diversityarrays.update.UpdateCheckContext;
 import com.diversityarrays.update.UpdateCheckRequest;
+import com.diversityarrays.update.UpdateCheckRequest.CheckStatus;
 import com.diversityarrays.update.UpdateDialog;
 import com.diversityarrays.util.Check;
 import com.diversityarrays.util.ConnectDisconnectActions;
@@ -112,6 +118,7 @@ import com.diversityarrays.util.ImageId;
 import com.diversityarrays.util.KDClientUtils;
 import com.diversityarrays.util.MsgBox;
 import com.diversityarrays.util.PrintStreamMessageLogger;
+import com.diversityarrays.util.ReportIssueAction;
 import com.diversityarrays.util.RunMode;
 import com.diversityarrays.util.VerticalLabelUI;
 
@@ -132,6 +139,9 @@ import net.pearcan.util.Util;
 public class KDXploreFrame extends JFrame {
 
     private static final String OFFLINE_DATA_APP_SERVICE_CLASS_NAME = "com.diversityarrays.kdxplore.offline.OfflineDataAppService";
+    // This is how often we will check for updates (if user hasn't exited)
+    //                                       ms/sec  sec/hr  hr/day   # days
+    private static final long EVERY_5_DAYS = 1000L * 3600  * 24     * 5;
 
     private static final String TAG = KDXploreFrame.class.getSimpleName();
 
@@ -183,7 +193,7 @@ public class KDXploreFrame extends JFrame {
             }
             catch (IOException | URISyntaxException e1) {
                 MsgBox.error(KDXploreFrame.this,
-                        "Unable to open online help at\n" + onlineHelpUrl,
+                        "Unable to open online help at\n" + onlineHelpUrl, //$NON-NLS-1$
                         getTitle());
             }
         }
@@ -231,6 +241,8 @@ public class KDXploreFrame extends JFrame {
         @Override
         public void accept(DALClientProvider t) { }
     };
+
+
     private final Function<DALClientProvider, Consumer<DALClientProvider>> connectIntercept = new Function<DALClientProvider, Consumer<DALClientProvider>>() {
 
         @Override
@@ -268,10 +280,9 @@ public class KDXploreFrame extends JFrame {
         this.onlineHelpUrl = config.getOnlineHelpUrl();
 
         String supportEmail = config.getSupportEmail();
-	if (Check.isEmpty(supportEmail)) {
-	    supportEmail = "someone@somewhere";
-	}
-
+        if (Check.isEmpty(supportEmail)) {
+            supportEmail = "someone@somewhere"; //$NON-NLS-1$
+        }
         DefaultUncaughtExceptionHandler eh = new DefaultUncaughtExceptionHandler(this,
                 appFolder.getApplicationName() + "_Error", //$NON-NLS-1$
                 supportEmail,
@@ -408,9 +419,20 @@ public class KDXploreFrame extends JFrame {
         mum.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
-                statusInfoLine.setText(mum.getMemoryUsage());
+                updateStatusLineWithMemoryUsage(mum.getMemoryUsage());
             }
         });
+    }
+
+    private String updateSiteMessage;
+    private void updateStatusLineWithMemoryUsage(String usage) {
+        String updateMsg = updateSiteMessage;
+        if (Check.isEmpty(updateMsg)) {
+            statusInfoLine.setText(usage);
+        }
+        else {
+            statusInfoLine.setText(usage + " [" + updateMsg + "]");
+        }
     }
 
     // Backup KdxApps are those that return true for canBackupDatabase().
@@ -840,7 +862,7 @@ public class KDXploreFrame extends JFrame {
     }
 
     private List<? extends Image> loadIconImages() {
-        List<Image> result = new ArrayList<Image>();
+        List<Image> result = new ArrayList<>();
 
         iconImageBig = KDClientUtils.getImage(ImageId.KDXPLORE_48);
         if (iconImageBig != null) {
@@ -1037,8 +1059,9 @@ public class KDXploreFrame extends JFrame {
     private JMenu createHelpMenu() {
         JMenu helpMenu = new JMenu(Msg.MENU_HELP());
         helpMenu.add(aboutAction);
-        if (! Check.isEmpty(onlineHelpUrl) && Desktop.isDesktopSupported()) {
+        if (Desktop.isDesktopSupported()) {
             helpMenu.add(onlineHelpAction);
+            helpMenu.add(new ReportIssueAction(this));
         }
         return helpMenu;
     }
@@ -1123,27 +1146,7 @@ public class KDXploreFrame extends JFrame {
             KdxploreConfig config = KdxploreConfig.getInstance();
             String url = config.getUpdatebaseUrl();
             if (url != null && !url.isEmpty()) {
-
-                // TODO: make this happen each 5 days in a "quiet" fashion
-                UpdateCheckRequest request = new UpdateCheckRequest(KDXploreFrame.this,
-                        versionCode,
-                        version,
-                        false,
-                        url);
-
-                UpdateCheckContext ctx = createUpdateCheckContext(url);
-
-                UpdateDialog updateDialog = new UpdateDialog(request,
-                        ctx,
-                        KdxConstants.getVersionInfo());
-
-                updateDialog.addWindowListener(new WindowAdapter() {
-                    @Override
-                    public void windowClosed(WindowEvent e) {
-                        doPostUpdateCheckAppInit();
-                    }
-                });
-                updateDialog.setVisible(true);
+                beginUpdateCheck(url);
             }
             else {
                 doPostUpdateCheckAppInit();
@@ -1369,6 +1372,91 @@ public class KDXploreFrame extends JFrame {
         if (nFailed > 0 && nFailed == allKdxApps.size()) {
             dispose();
         }
+    }
+
+    private TimerTask updateCheckTask = new TimerTask() {
+
+        UpdateDialog updateDialog;
+        @Override
+        public void run() {
+            // Only do this if not already showing the dialog and we have a URL to use
+            if (updateDialog==null && ! Check.isEmpty(updateCheckUrl)) {
+                UpdateCheckRequest request = new UpdateCheckRequest(KDXploreFrame.this,
+                        versionCode,
+                        version,
+                        false,
+                        updateCheckUrl);
+                SwingUtilities.invokeLater(new Runnable() {
+                    @Override
+					public void run() {
+                        updateSiteMessage = "Checking for update on " + request.updateSite; //$NON-NLS-1$
+                        statusInfoLine.setText(updateSiteMessage);
+                    }
+                });
+                Consumer<String> onReceiveComplete = new Consumer<String>() {
+                    @Override
+                    public void accept(String msg) {
+                        updateSiteMessage = null;
+                        if (CheckStatus.UPDATE_AVAILABLE == request.checkStatus) {
+                            if (request.kdxploreUpdate != null) {
+
+                                UpdateCheckContext ctx = createUpdateCheckContext(updateCheckUrl);
+
+                                updateDialog = new UpdateDialog(request,
+                                        ctx,
+                                        KdxConstants.getVersionInfo());
+                                updateDialog.addWindowListener(new WindowAdapter() {
+                                    @Override
+                                    public void windowClosed(WindowEvent e) {
+                                        updateDialog = null;
+                                    }
+                                });
+                                updateDialog.handleCheckCompleted(msg);
+//                                new Toast(KDXploreFrame.this,
+//                                        "Update " + request.kdxploreUpdate.versionName + " is Available",
+//                                        Toast.LONG).show();
+                            }
+                        }
+                    }
+                };
+                SwingWorker<String, Void> worker = request.createWorker(messagesPanel.getPrintStream(), onReceiveComplete);
+                worker.execute();
+            }
+        }
+    };
+    private String updateCheckUrl;
+    private long updateCheckDelayMillis = EVERY_5_DAYS;
+    private long updateCheckPeriodMillis = EVERY_5_DAYS;
+    private Timer updateCheckTimerDaemon;
+    private Date lastUpdateCheck;
+    private void beginUpdateCheck(String url) {
+
+        updateCheckUrl = url;
+        // TODO: make this happen each 5 days in a "quiet" fashion
+        UpdateCheckRequest request = new UpdateCheckRequest(KDXploreFrame.this,
+                versionCode,
+                version,
+                false,
+                url);
+
+        UpdateCheckContext ctx = createUpdateCheckContext(url);
+
+        UpdateDialog updateDialog = new UpdateDialog(request,
+                ctx,
+                KdxConstants.getVersionInfo());
+
+        updateDialog.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                lastUpdateCheck = new Date();
+                if (updateCheckTimerDaemon == null) {
+                    updateCheckTimerDaemon = new Timer("UpdateCheckTimer", true); //$NON-NLS-1$
+                    updateCheckTimerDaemon.scheduleAtFixedRate(updateCheckTask, updateCheckDelayMillis, updateCheckPeriodMillis);
+                }
+                doPostUpdateCheckAppInit();
+            }
+        });
+        updateDialog.setVisible(true);
     }
 
     private void doBackupDatabase() {

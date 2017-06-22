@@ -17,31 +17,67 @@
 */
 package com.diversityarrays.kdxplore.design;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 
 public class DesignEntry {
+
+	protected final int sequence;
     protected final String location;
     protected final String nurseryOrExperiment;
     protected final int entryId;
     protected final String entryName;
-    protected final Map<EntryFactor,String> factorValues = new TreeMap<>();
+    protected final Map<EntryFactor,String> factorValues;
+    protected EntryType entryType;
 
-    protected DesignEntry(String loc, String exp, int entryId, String name, Map<EntryFactor, String> map) {
+    protected DesignEntry(
+    		int seq,
+    		String loc,
+    		String exp,
+    		int entryId,
+    		String name,
+    		EntryType type,
+    		Map<EntryFactor, String> map)
+    {
+    	this.sequence = seq;
     	this.entryId = entryId;
+    	this.entryType = type;
         this.location = loc==null ? "" : loc;
         this.nurseryOrExperiment = exp==null ? "" : exp;
         this.entryName = name;
-        if (map != null) {
-            factorValues.putAll(map);
+        if (map == null) {
+        	factorValues = Collections.emptyMap();
+        }
+        else {
+        	factorValues = Collections.unmodifiableMap(new TreeMap<>(map));
         }
     }
 
     @Override
     public String toString() {
         return entryName;
+    }
+
+    public int getSequence() {
+    	return sequence;
+    }
+
+    public String getCsvValue() {
+    	if (entryType == null) {
+    	    return "?";
+    	}
+    	return entryType.getCsvValue(getEntryName());
+    }
+
+    public EntryType getEntryType() {
+    	return entryType;
+    }
+
+    public void setEntryType(EntryType entryType) {
+    	this.entryType = entryType;
     }
 
     public int getEntryId() {

@@ -1,17 +1,17 @@
 /*
     KDXplore provides KDDart Data Exploration and Management
     Copyright (C) 2015,2016,2017  Diversity Arrays Technology, Pty Ltd.
-    
+
     KDXplore may be redistributed and may be modified under the terms
     of the GNU General Public License as published by the Free Software
     Foundation, either version 3 of the License, or (at your option)
     any later version.
-    
+
     KDXplore is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
-    
+
     You should have received a copy of the GNU General Public License
     along with KDXplore.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -34,6 +34,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -41,6 +43,9 @@ import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CancellationException;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -65,7 +70,10 @@ import javax.swing.event.ChangeListener;
 import org.apache.commons.collections15.Closure;
 
 import com.diversityarrays.kdxplore.Shared;
+import com.diversityarrays.kdxplore.trialdesign.TrialDesignPreferences;
+import com.diversityarrays.kdxplore.ui.Toast;
 import com.diversityarrays.util.Check;
+import com.diversityarrays.util.DocumentChangeListener;
 import com.diversityarrays.util.Either;
 import com.diversityarrays.util.MsgBox;
 import com.diversityarrays.util.Pair;
@@ -79,7 +87,9 @@ import net.pearcan.excel.ExcelUtil.SheetInfo;
 import net.pearcan.ui.DefaultBackgroundRunner;
 import net.pearcan.ui.GuiUtil;
 import net.pearcan.ui.widget.PromptScrollPane;
+import net.pearcan.ui.widget.PromptTextField;
 import net.pearcan.util.BackgroundTask;
+import net.pearcan.util.GBH;
 
 /**
  * If Excel file:
@@ -111,7 +121,7 @@ public abstract class EntryFileImportDialog<EFile,Role >extends JDialog {
 
     private RowDataProvider rowDataProvider;
 
-    private SpinnerNumberModel previewRowCountSpinnerModel = new SpinnerNumberModel(8, 2, 100, 1);
+    private SpinnerNumberModel previewRowCountSpinnerModel = new SpinnerNumberModel(20, 2, 100, 1);
 
     private final DefaultComboBoxModel<String> sheetNamesModel = new DefaultComboBoxModel<>();
     private final JComboBox<String> sheetNamesComboBox = new JComboBox<>(sheetNamesModel);
@@ -204,6 +214,9 @@ public abstract class EntryFileImportDialog<EFile,Role >extends JDialog {
 
     private final DefaultBackgroundRunner backgroundRunner = new DefaultBackgroundRunner();
 
+    private final PromptTextField normalEntryNameField = new PromptTextField("provide name for non-Check Entries", 40);
+    private final JCheckBox saveForFuture = new JCheckBox("Save for future");
+
     private final JTextArea errorMessage = new JTextArea();
 
     private final CardLayout cardLayout = new CardLayout();
@@ -214,11 +227,15 @@ public abstract class EntryFileImportDialog<EFile,Role >extends JDialog {
 
     //For Excel files
     private String selectedSheetName;
+    private final Predicate<Role> entryHeadingFilter;
 
 
-    public EntryFileImportDialog(Window owner, String title, File inputFile) {
+    public EntryFileImportDialog(Window owner, String title, File inputFile,
+    		Predicate<Role> entryHeadingFilter)
+    {
         super(owner, title, ModalityType.APPLICATION_MODAL);
 
+        this.entryHeadingFilter = entryHeadingFilter;
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
         setGlassPane(backgroundRunner.getBlockingPane());
@@ -266,11 +283,35 @@ public abstract class EntryFileImportDialog<EFile,Role >extends JDialog {
         dataPreviewPanel.add(dataPreviewScrollPane, BorderLayout.CENTER);
 
         headingWarning.setForeground(Color.RED);
-        JLabel instructions = new JLabel("<HTML>Put instructions on usage here");
+        JLabel instructions = new JLabel(
+        		"<HTML>Please assign a <i>Role</i> for each of the headings in your data"
+        		+ "<br>You must specify one as the <i>Entry Name</i>."
+        		+ "<br>Click on one of the <i>Role</i> cells and select from the dropdown"
+        		+ "<br>To assign multiple headings, select the rows for which you wish"
+        		+ "<br>to set the <i>Role</i> then right-click and choose from the dropdown.");
         instructions.setHorizontalAlignment(JLabel.CENTER);
+        instructions.setBackground(Toast.PALE_YELLOW);
+
         JScrollPane instScroll = new JScrollPane(instructions);
+        instScroll.setBackground(Toast.PALE_YELLOW);
+
+        normalEntryNameField.getDocument().addDocumentListener(new DocumentChangeListener((e) -> updateAcceptButton()));
+        normalEntryNameField.setText(TrialDesignPreferences.getInstance().getNormalEntryTypeName());
+
+        JPanel rolesPanel = new JPanel();
+        GBH gbh = new GBH(rolesPanel, 2,2,0,0);
+        int y = 0;
+        gbh.add(0,y, 1,1, GBH.NONE, 0,1, GBH.EAST, "Entry Type Name for non-Checks:");
+        gbh.add(1,y, 1,1, GBH.NONE, 1,1, GBH.WEST, normalEntryNameField);
+        gbh.add(2,y, 1,1, GBH.NONE, 1,1, GBH.WEST, saveForFuture);
+        ++y;
+
+        gbh.add(0,y, 3,1, GBH.BOTH, 2,1,GBH.CENTER, roleAssignmentPanel);
+        ++y;
+
         JSplitPane headingsAndInstructions = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
-                roleAssignmentPanel, instScroll);
+        		rolesPanel, instScroll);
+
 
         JPanel headingPanel = new JPanel(new BorderLayout());
         headingPanel.add(GuiUtil.createLabelSeparator("Assign Roles for Headings"), BorderLayout.NORTH);
@@ -347,6 +388,13 @@ public abstract class EntryFileImportDialog<EFile,Role >extends JDialog {
         });
     }
 
+    public String getNormalEntryName() {
+    	return normalEntryNameField.getText().trim();
+    }
+
+    private void updateAcceptButton() {
+    	acceptAction.setEnabled(! normalEntryNameField.getText().trim().isEmpty());
+    }
 
     private void updateDataPreviewScrolling() {
         boolean useScrollBar = useScrollBarOption.isSelected();
@@ -497,6 +545,36 @@ public abstract class EntryFileImportDialog<EFile,Role >extends JDialog {
                     }
 
                     headingRoleTableModel.setHeadingsAndData(headingRow, previewRows.get(0));
+
+                    if (entryHeadingFilter != null) {
+                    	Optional<Integer> optHeadingIndex = headingRoleTableModel.getHeadingIndex(entryHeadingFilter);
+                    	if (optHeadingIndex.isPresent()) {
+                    	    int headingIndex = optHeadingIndex.get();
+                    	    List<Pair<String, Integer>> countsByValue = previewRows.stream()
+                    	        .filter(fields -> fields.length >= headingIndex)
+                    	        .map(fields -> fields[headingIndex])
+                    	        .collect(Collectors.groupingBy(Function.identity()))
+                    	        .entrySet().stream()
+                    	        .map(e -> new Pair<>(e.getKey(), e.getValue().size()))
+                    	        .collect(Collectors.toList());
+                    	    // descending
+                    	    if (! countsByValue.isEmpty()) {
+                    	        Collections.sort(countsByValue, new Comparator<Pair<String,Integer>>() {
+                    	            @Override
+                    	            public int compare(Pair<String,Integer>o1,Pair<String,Integer>o2) {
+                    	                return o2.second.compareTo(o1.second);
+                    	            }
+                    	        });
+                    	        // Assume the most common one is "non-check"
+                    	        String probablyNormalEntryName = countsByValue.get(0).first;
+                    	        if (! probablyNormalEntryName.isEmpty()) {
+                    	            normalEntryNameField.setText(probablyNormalEntryName);
+                    	        }
+                    	    }
+
+                    	}
+                    }
+
                     previewRows.add(0, headingRow);
                     dataPreviewTableModel.setData(previewRows);
                     GuiUtil.initialiseTableColumnWidths(dataPreviewTable);
@@ -525,16 +603,20 @@ public abstract class EntryFileImportDialog<EFile,Role >extends JDialog {
     }
 
     private List<String> loadExcelFile() throws IOException {
-      List<String> sheetNames = new ArrayList<>();
-      for (SheetInfo si : ExcelUtil.getSheetInfoForAllSheets(file)) {
-          sheetNames.add(si.name);
-      }
-      return sheetNames;
-  }
+    	List<String> sheetNames = new ArrayList<>();
+    	for (SheetInfo si : ExcelUtil.getSheetInfoForAllSheets(file)) {
+    		sheetNames.add(si.name);
+    	}
+    	return sheetNames;
+    }
 
     abstract protected Either<String, Set<String>> checkValidity(Map<String,Role> rbh);
     abstract protected HeadingRoleTableModel<Role> createHeadingRoleTableModel();
 
     abstract protected EFile createEntryFile(RowDataProvider rdp, Map<String,Role> roleByHeading)
             throws IOException, EntryFileException;
+
+    public boolean isSaveForFutureChecked() {
+    	return saveForFuture.isSelected();
+    }
 }

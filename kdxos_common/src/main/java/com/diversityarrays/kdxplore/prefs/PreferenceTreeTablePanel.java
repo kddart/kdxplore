@@ -1,17 +1,17 @@
 /*
     KDXplore provides KDDart Data Exploration and Management
     Copyright (C) 2015,2016,2017  Diversity Arrays Technology, Pty Ltd.
-    
+
     KDXplore may be redistributed and may be modified under the terms
     of the GNU General Public License as published by the Free Software
     Foundation, either version 3 of the License, or (at your option)
     any later version.
-    
+
     KDXplore is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
-    
+
     You should have received a copy of the GNU General Public License
     along with KDXplore.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -59,11 +59,11 @@ public class PreferenceTreeTablePanel extends JPanel {
         final Map<String,PrefNode> nodeByName = new HashMap<>();
         final List<PrefNode> children = new ArrayList<>();
         public KdxPreference<?> preference;
-        
+
         PrefNode(String n) {
             this.name = n;
         }
-        
+
         public void addChild(PrefNode child) {
             if (nodeByName.containsKey(child.name)) {
                 throw new RuntimeException("Coding error"); //$NON-NLS-1$
@@ -71,19 +71,19 @@ public class PreferenceTreeTablePanel extends JPanel {
             nodeByName.put(child.name, child);
             children.add(child);
         }
-        
-        
+
+
         static public PrefNode buildPrefNodeTree(KdxPreference<?>[] preferences) {
-            
+
             PrefNode root = new PrefNode("root"); //$NON-NLS-1$
-            
+
             Set<String> paths = new HashSet<>();
-            
+
             KdxplorePreferences kdxPrefs = KdxplorePreferences.getInstance();
 
             for (PreferenceCollection prefcoll : kdxPrefs.getPreferenceCollections()) {
                 for (KdxPreference<?> pref : prefcoll.getKdxPreferences()) {
-                    String[] keyParts = pref.key.split("/"); //$NON-NLS-1$                    
+                    String[] keyParts = pref.key.split("/"); //$NON-NLS-1$
                     if (paths.add(pref.key)) {
                         List<String> path = new ArrayList<>();
                         for (String kp : keyParts) {
@@ -93,7 +93,7 @@ public class PreferenceTreeTablePanel extends JPanel {
                             }
                             path.add(name);
                         }
-                        
+
                         PrefNode findNode = findPrefNode(root, path);
                         if (findNode.preference != null) {
                             throw new RuntimeException("Already an object at " + pref.key+ ": "+ findNode.preference); //$NON-NLS-1$ //$NON-NLS-2$
@@ -110,7 +110,7 @@ public class PreferenceTreeTablePanel extends JPanel {
 //                if (! kdxPrefs.isSectionSupported(keyParts[0])) {
 //                    continue;
 //                }
-//                
+//
 //                if (paths.add(pref.key)) {
 //                    List<String> path = new ArrayList<>();
 //                    for (String kp : keyParts) {
@@ -120,7 +120,7 @@ public class PreferenceTreeTablePanel extends JPanel {
 //                        }
 //                        path.add(name);
 //                    }
-//                    
+//
 //                    PrefNode findNode = findPrefNode(root, path);
 //                    if (findNode.preference != null) {
 //                        throw new RuntimeException("Already an object at " + pref.key+ ": "+ findNode.preference); //$NON-NLS-1$ //$NON-NLS-2$
@@ -131,13 +131,13 @@ public class PreferenceTreeTablePanel extends JPanel {
 //                    throw new RuntimeException("Duplicate preference key: " + pref.key); //$NON-NLS-1$
 //                }
 //            }
-            
+
             return root;
         }
-        
+
         static private PrefNode findPrefNode(PrefNode node, List<String> path) {
             String lookingFor = path.get(0);
-            
+
 
             PrefNode found = null;
             for (PrefNode child : node.children) {
@@ -146,7 +146,7 @@ public class PreferenceTreeTablePanel extends JPanel {
                     break;
                 }
             }
-            
+
             if (found == null) {
                 // Need to create a new one
                 switch (path.size()) {
@@ -173,9 +173,9 @@ public class PreferenceTreeTablePanel extends JPanel {
         }
 
 
-        
+
     }
-	
+
 	static class PrefsTreeTableModel extends AbstractTreeTableModel {
 
 		private final static String[] COLUMN_NAMES = {
@@ -189,7 +189,7 @@ public class PreferenceTreeTablePanel extends JPanel {
 			preferences = prefs.toArray(new KdxPreference<?>[prefs.size()]);
 			root = PrefNode.buildPrefNodeTree(preferences);
 		}
-		
+
 		@Override
 		public int getColumnCount() {
 			return COLUMN_NAMES.length;
@@ -220,8 +220,8 @@ public class PreferenceTreeTablePanel extends JPanel {
 			}
 			return false;
 		}
-		
-		
+
+
 
 		@Override
 		public Object getValueAt(Object obj, int column) {
@@ -270,53 +270,53 @@ public class PreferenceTreeTablePanel extends JPanel {
 		@Override
 		public boolean isLeaf(Object node) {
 			return super.isLeaf(node);
-		}		
+		}
 	}
 
-    public static final boolean DEBUG = Boolean.getBoolean("PreferenceTreeTablePanel.DEBUG"); //$NON-NLS-1$
+    public static boolean DEBUG = Boolean.getBoolean("PreferenceTreeTablePanel.DEBUG"); //$NON-NLS-1$
 
 	// This uses PrefNode
 	private TreeTableModel treeTableModel = new PrefsTreeTableModel();
 	private final JXTreeTable treeTable = new JXTreeTable(treeTableModel);
 	private PrefCellRenderer cellRenderer = new PrefCellRenderer();
 	private TableCellEditor cellEditor = new PrefCellEditor();
-	
+
 
 	PreferenceTreeTablePanel() {
 		super(new BorderLayout());
-		
+
 		treeTable.getColumnModel().getColumn(1).setCellRenderer(cellRenderer);
 		treeTable.getColumnModel().getColumn(1).setCellEditor(cellEditor);
 		add(new JScrollPane(treeTable), BorderLayout.CENTER);
 
 	}
-	
+
 
 
 
 	class PrefCellEditor implements TableCellEditor {
-		
+
 		@SuppressWarnings("rawtypes")
         private JComboBox comboBox = new JComboBox();
 		private JCheckBox checkBox = new JCheckBox();
 		private JTextField textField = new JTextField();
-		
+
 		private DefaultCellEditor combo = new DefaultCellEditor(comboBox);
 		private DefaultCellEditor check = new DefaultCellEditor(checkBox);
 		private DefaultCellEditor text = new DefaultCellEditor(textField);
-		
+
 		DefaultCellEditor current;
-		
+
 		private EventListenerList listenerList = new EventListenerList();
 		private CellEditorListener cellEditorListener = new CellEditorListener() {
-			
+
 			@Override
 			public void editingStopped(ChangeEvent e) {
 				for (CellEditorListener l : listenerList.getListeners(CellEditorListener.class)) {
 					l.editingStopped(e);
 				}
 			}
-			
+
 			@Override
 			public void editingCanceled(ChangeEvent e) {
 				for (CellEditorListener l : listenerList.getListeners(CellEditorListener.class)) {
@@ -324,7 +324,7 @@ public class PreferenceTreeTablePanel extends JPanel {
 				}
 			}
 		};
-		
+
 		PrefCellEditor() {
 			combo.addCellEditorListener(cellEditorListener);
 			check.addCellEditorListener(cellEditorListener);
@@ -334,9 +334,9 @@ public class PreferenceTreeTablePanel extends JPanel {
 	            System.out.println("combo=" + combo); //$NON-NLS-1$
 	            System.out.println("check=" + check); //$NON-NLS-1$
 	            System.out.println("text=" + text); //$NON-NLS-1$
-			}			
+			}
 		}
-		
+
 		private String getWho(Object src) {
 			String result = src.toString();
 			if (src == combo) {
@@ -410,7 +410,7 @@ public class PreferenceTreeTablePanel extends JPanel {
 			current.cancelCellEditing();
 		}
 
-		
+
 		@Override
 		public void addCellEditorListener(CellEditorListener l) {
 			listenerList.add(CellEditorListener.class, l);
@@ -424,20 +424,20 @@ public class PreferenceTreeTablePanel extends JPanel {
 		@SuppressWarnings({ "unchecked", "rawtypes" })
         @Override
 		public Component getTableCellEditorComponent(JTable table,
-				Object value, boolean isSelected, int row, int column) 
+				Object value, boolean isSelected, int row, int column)
 		{
 			if (value == null) {
 				throw new RuntimeException("NULL value"); //$NON-NLS-1$
 			}
-			
+
 			if (! (table instanceof JXTreeTable)) {
 				throw new RuntimeException("Unsupported table class=" + table.getClass().getName()); //$NON-NLS-1$
 			}
 			JXTreeTable treeTable = (JXTreeTable) table;
-			
+
 			int modelRow = table.convertRowIndexToModel(row);
 			int modelColumn = table.convertColumnIndexToModel(column);
-			
+
 			TreePath pathForRow = treeTable.getPathForRow(row);
 			Object lpc = pathForRow.getLastPathComponent();
 			if (! (lpc instanceof PrefNode)) {
@@ -446,8 +446,8 @@ public class PreferenceTreeTablePanel extends JPanel {
 			PrefNode prefNode = (PrefNode) lpc;
 
 			System.out.println(prefNode.preference);
-			
-			
+
+
 			if (value instanceof Boolean) {
 				checkBox.setSelected((Boolean) value);
 				current = check;
@@ -470,30 +470,30 @@ public class PreferenceTreeTablePanel extends JPanel {
 			return current.getTableCellEditorComponent(treeTable, value, isSelected, modelRow, modelColumn);
 		}
 	}
-	
+
 	class PrefCellRenderer extends DefaultTableCellRenderer {
-		
+
 		ColorCellRenderer colorCellRenderer = new ColorCellRenderer();
 
 		PrefCellRenderer() {
 			setHorizontalAlignment(CENTER);
 		}
-		
+
 		@Override
 		public Component getTableCellRendererComponent(JTable table,
 				Object value, boolean isSelected, boolean hasFocus, int row,
-				int column) 
-		{			
+				int column)
+		{
 			if (value != null) {
 				if (value instanceof Color) {
 					return colorCellRenderer.getTableCellRendererComponent
 							(table, value, isSelected, hasFocus, row, column);
 				}
 			}
-			
+
 			return super.getTableCellRendererComponent(table, value, isSelected, hasFocus,
 					row, column);
 		}
-		
+
 	}
 }

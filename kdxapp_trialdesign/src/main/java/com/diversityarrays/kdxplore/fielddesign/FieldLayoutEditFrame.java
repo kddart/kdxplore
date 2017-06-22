@@ -1,17 +1,17 @@
 /*
     KDXplore provides KDDart Data Exploration and Management
     Copyright (C) 2015,2016,2017  Diversity Arrays Technology, Pty Ltd.
-    
+
     KDXplore may be redistributed and may be modified under the terms
     of the GNU General Public License as published by the Free Software
     Foundation, either version 3 of the License, or (at your option)
     any later version.
-    
+
     KDXplore is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
-    
+
     You should have received a copy of the GNU General Public License
     along with KDXplore.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -62,7 +62,7 @@ import com.diversityarrays.kdxplore.fieldlayout.PlantingBlock;
 import com.diversityarrays.kdxplore.fieldlayout.ReplicateCellContent;
 import com.diversityarrays.kdxplore.fieldlayout.SiteLocation;
 import com.diversityarrays.kdxplore.fieldlayout.TrialEntryAssignmentDataProvider;
-import com.diversityarrays.kdxplore.trialdesign.TrialEntry;
+import com.diversityarrays.kdxplore.trialdesign.TrialEntryFile;
 import com.diversityarrays.kdxplore.ui.Toast;
 import com.diversityarrays.util.ImageId;
 import com.diversityarrays.util.KDClientUtils;
@@ -259,7 +259,7 @@ public class FieldLayoutEditFrame extends JFrame {
             PlantingBlockFactory<ReplicateCellContent> blockFactory,
             Function<EntryType, Color> entryTypeColorSupplier,
             Map<EntryType, Integer> countByEntryTypes,
-            Supplier<List<TrialEntry>> trialEntriesSupplier,
+            Supplier<TrialEntryFile> trialEntryFileSupplier,
             Consumer<String> messagePrinter)
     {
         super(TITLE_FACTORY.apply(location), gc);
@@ -283,8 +283,8 @@ public class FieldLayoutEditFrame extends JFrame {
         TrialEntryAssignmentDataProvider dataProvider = new TrialEntryAssignmentDataProvider() {
 
             @Override
-            public List<TrialEntry> getTrialEntries() {
-                return trialEntriesSupplier.get();
+            public TrialEntryFile getTrialEntryFile() {
+                return trialEntryFileSupplier.get();
             }
 
             @Override

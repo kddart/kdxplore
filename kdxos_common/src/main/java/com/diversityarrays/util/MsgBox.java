@@ -1,17 +1,17 @@
 /*
     KDXplore provides KDDart Data Exploration and Management
     Copyright (C) 2015,2016,2017  Diversity Arrays Technology, Pty Ltd.
-    
+
     KDXplore may be redistributed and may be modified under the terms
     of the GNU General Public License as published by the Free Software
     Foundation, either version 3 of the License, or (at your option)
     any later version.
-    
+
     KDXplore is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
-    
+
     You should have received a copy of the GNU General Public License
     along with KDXplore.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -44,9 +44,8 @@ import javax.swing.text.html.HTMLDocument;
 
 import com.diversityarrays.kdxplore.Shared;
 
-@SuppressWarnings("nls")
 public class MsgBox {
-    
+
     static public interface ProblemReporter {
         /**
          * The text for the button to invoke the <code>reportProblem</code> method.
@@ -58,11 +57,11 @@ public class MsgBox {
          * Do what is needed to report the problem.
          * @param title
          * @param error
-         * @param thread 
+         * @param thread
          */
         void reportProblem(String title, Throwable error, Thread thread);
     }
-    
+
     /**
      * Set this somewhere else to get standardised error reporting.
      */
@@ -76,19 +75,15 @@ public class MsgBox {
             ProblemReporter problemReporter)
     {
         if (msg instanceof Throwable) {
-            Shared.Log.i("MESSAGE", title, (Throwable) msg);
+            Shared.Log.i("MESSAGE", title, (Throwable) msg); //$NON-NLS-1$
             showThrowable(JOptionPane.INFORMATION_MESSAGE,
                     parentComponent,
                     title,
                     (Throwable) msg,
                     problemReporter);
         }
-        else if (msg instanceof Component) {
-        	Component c = (Component) msg;
-            Shared.Log.i("MESSAGE", title + ": " + c.getName() + " : " + c.getClass().getName());
-        }
         else {
-            Shared.Log.i("MESSAGE", title + ": " + msg);
+            Shared.Log.i("MESSAGE", title + ": " + msg); //$NON-NLS-1$  //$NON-NLS-2$
         }
         JOptionPane.showMessageDialog(parentComponent, msg, title, JOptionPane.INFORMATION_MESSAGE);
     }
@@ -101,7 +96,7 @@ public class MsgBox {
             ProblemReporter problemReporter)
     {
         if (msg instanceof Throwable) {
-            Shared.Log.e("WARN", title, (Throwable) msg);
+            Shared.Log.e("WARN", title, (Throwable) msg); //$NON-NLS-1$
 
             showThrowable(JOptionPane.WARNING_MESSAGE,
                     parentComponent,
@@ -109,12 +104,8 @@ public class MsgBox {
                     (Throwable) msg,
                     problemReporter);
         }
-        else if (msg instanceof Component) {
-        	Component c = (Component) msg;
-            Shared.Log.i("WARN", title + ": " + c.getName() + " : " + msg.getClass().getName());
-        }
         else {
-            Shared.Log.e("WARN", title + ": " + msg);
+            Shared.Log.e("WARN", title + ": " + msg); //$NON-NLS-1$  //$NON-NLS-2$
         }
         JOptionPane.showMessageDialog(parentComponent, msg, title, JOptionPane.WARNING_MESSAGE);
     }
@@ -122,12 +113,12 @@ public class MsgBox {
     public static void error(Component parentComponent, Object msg, String title) {
         error(parentComponent, msg, title, null);
     }
-    
+
     public static void error(Component parentComponent, Object msg, String title,
             ProblemReporter problemReporter)
     {
         if (msg instanceof Throwable) {
-            Shared.Log.e("ERROR", title, (Throwable) msg);
+            Shared.Log.e("ERROR", title, (Throwable) msg); //$NON-NLS-1$
 
             showThrowable(JOptionPane.ERROR_MESSAGE,
                     parentComponent,
@@ -136,20 +127,14 @@ public class MsgBox {
                     problemReporter);
         }
         else {
-        	if (msg instanceof Component) {
-            	Component c = (Component) msg;
-                Shared.Log.e("ERROR", title + ": " + c.getName() + " : " + msg.getClass().getName());
-        	}
-        	else {
-                Shared.Log.e("ERROR", title + ": " + msg);
-        	}
-            JOptionPane.showMessageDialog(parentComponent, msg, title, 
+        	Shared.Log.e("ERROR", title + ": " + msg); //$NON-NLS-1$  //$NON-NLS-2$
+            JOptionPane.showMessageDialog(parentComponent, msg, title,
                     JOptionPane.ERROR_MESSAGE);
         }
     }
 
     public static void showThrowable(int messageType,
-            Component parentComponent, 
+            Component parentComponent,
             String title,
             Throwable t,
             ProblemReporter reporter)
@@ -170,7 +155,7 @@ public class MsgBox {
                     font.getSize());
             hdoc.getStyleSheet().addRule(bodyRule);
         }
-        
+
     }
 
     static private final String[] PROPERTY_NAMES = {
@@ -184,13 +169,13 @@ public class MsgBox {
     };
 
     public static void showThrowable(int messageType,
-            Component parentComponent, 
+            Component parentComponent,
             String title,
             Throwable error,
             ProblemReporter reporter,
             Thread thread)
     {
-        
+
         if (reporter == null) {
             reporter = DEFAULT_PROBLEM_REPORTER;
         }
@@ -198,7 +183,7 @@ public class MsgBox {
 
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
-        
+
         for (String propertyName : PROPERTY_NAMES) {
             pw.println(propertyName + ":\t" + System.getProperty(propertyName)); //$NON-NLS-1$
         }
@@ -234,14 +219,14 @@ public class MsgBox {
            |                                          |
            +------------------------------------------+
          */
-        
+
         String tmsg = error.getMessage();
         JLabel msgLabel = new JLabel(tmsg==null ? "": tmsg, SwingConstants.LEFT); //$NON-NLS-1$
         msgLabel.setForeground(Color.RED);
-        
+
         JLabel clsLabel = new JLabel(error.getClass().getName(), SwingConstants.LEFT);
         JCheckBox showDetails = new JCheckBox(Msg.ERROR_DETAILS());
-        
+
         Box classAndCheckbox = Box.createHorizontalBox();
         classAndCheckbox.add(clsLabel);
         classAndCheckbox.add(showDetails);
@@ -249,15 +234,15 @@ public class MsgBox {
         if (submitReport != null) {
             classAndCheckbox.add(new JButton(submitReport));
         }
-        
+
         JPanel panel1 = new JPanel(new BorderLayout());
         panel1.add(classAndCheckbox, BorderLayout.NORTH);
         panel1.add(sp, BorderLayout.CENTER);
-        
+
         JPanel panel2 = new JPanel(new BorderLayout());
         panel2.add(msgLabel, BorderLayout.NORTH);
         panel2.add(panel1, BorderLayout.CENTER);
-        
+
 
         JOptionPane optPane = new JOptionPane(panel2, messageType);
         JDialog dlg = optPane.createDialog(parentComponent, title);
@@ -268,7 +253,7 @@ public class MsgBox {
                 dlg.pack();
             }
         });
-        
+
         dlg.setResizable(true);
         dlg.setVisible(true);
     }

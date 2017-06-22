@@ -1,17 +1,17 @@
 /*
     KDXplore provides KDDart Data Exploration and Management
     Copyright (C) 2015,2016,2017  Diversity Arrays Technology, Pty Ltd.
-    
+
     KDXplore may be redistributed and may be modified under the terms
     of the GNU General Public License as published by the Free Software
     Foundation, either version 3 of the License, or (at your option)
     any later version.
-    
+
     KDXplore is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
-    
+
     You should have received a copy of the GNU General Public License
     along with KDXplore.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -23,7 +23,6 @@ import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -42,6 +41,7 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
@@ -51,6 +51,8 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 
 import com.diversityarrays.kdxplore.Shared;
 import com.diversityarrays.kdxplore.design.EntryCountChangeListener;
@@ -62,6 +64,7 @@ import com.diversityarrays.kdxplore.fieldlayout.ManualLayoutPanel;
 import com.diversityarrays.kdxplore.fieldlayout.SiteLocation;
 import com.diversityarrays.kdxplore.services.KdxPluginInfo;
 import com.diversityarrays.kdxplore.ui.Toast;
+import com.diversityarrays.util.BoxBuilder;
 import com.diversityarrays.util.Check;
 import com.diversityarrays.util.ColorSupplier;
 import com.diversityarrays.util.ImageId;
@@ -98,8 +101,7 @@ public class TrialDesignPanel extends JPanel {
 
     private final DefaultComboBoxModel<String> experimentModel = new DefaultComboBoxModel<>();
     private final JComboBox<String> experimentCombo = new JComboBox<>(experimentModel);
-    private Map<String, List<TrialEntry>> entriesByExperiment = Collections.emptyMap();
-//    private final AlgorithmSelector algorithmSelector;
+    private final AlgorithmSelector algorithmSelector;
 
     private LocationsPanel locationsPanel;
 
@@ -121,8 +123,8 @@ public class TrialDesignPanel extends JPanel {
     private IntConsumer onLocationCountChanged = new IntConsumer() {
         @Override
         public void accept(int nLocations) {
-        	System.out.println("TrialDesignPanel: onLocationCountChanged(" + nLocations + ")");
-//            algorithmSelector.setLocationCount(nLocations);
+//        	System.out.println("TrialDesignPanel: onLocationCountChanged(" + nLocations + ")");
+            algorithmSelector.setLocationCount(nLocations);
         }
     };
 
@@ -173,14 +175,16 @@ public class TrialDesignPanel extends JPanel {
 
     private final BackgroundRunner backgroundRunner;
 
-    private Supplier<List<TrialEntry>> trialEntriesSupplier = new Supplier<List<TrialEntry>>() {
+    private Supplier<TrialEntryFile> trialEntryFileSupplier = new Supplier<TrialEntryFile>() {
         @Override
-        public List<TrialEntry> get() {
-            return entryTableModel.getEntries();
+        public TrialEntryFile get() {
+            return entryTableModel.getTrialEntryFile();
         }
     };
 
     private final MessagePrinter messagePrinter;
+
+	private final JLabel entryCountLabel = new JLabel();
 
     public TrialDesignPanel(KdxPluginInfo pluginInfo) {
         super(new BorderLayout());
@@ -188,7 +192,7 @@ public class TrialDesignPanel extends JPanel {
         messagePrinter = pluginInfo.getMessagePrinter();
 
         backgroundRunner = pluginInfo.getBackgroundRunner();
-//        algorithmSelector = new AlgorithmSelector(backgroundRunner);
+        algorithmSelector = new AlgorithmSelector(backgroundRunner);
 
         experimentCombo.setVisible(false);
 
@@ -225,13 +229,27 @@ public class TrialDesignPanel extends JPanel {
 
         entriesPanel.add(GuiUtil.createLabelSeparator("Entry List | Experiment:", box), BorderLayout.NORTH);
         entriesPanel.add(entriesScrollPane, BorderLayout.CENTER);
+        entriesPanel.add(BoxBuilder.horizontal().add(entryCountLabel).get(), BorderLayout.SOUTH);
+
+        entryTableModel.addTableModelListener(new TableModelListener() {
+			@Override
+			public void tableChanged(TableModelEvent e) {
+				int count = entryTableModel.getRowCount();
+				if (count > 0) {
+					entryCountLabel.setText("# entries: " + count);
+				}
+				else {
+					entryCountLabel.setText("");
+				}
+			}
+		});
 
         locationsPanel = new LocationsPanel(
                 colorSupplier,
                 onLocationChanged,
                 onLocationCountChanged,
                 manualLayoutPanel,
-                trialEntriesSupplier,
+                trialEntryFileSupplier,
                 (s) -> messagePrinter.println(s));
 
         experimentCombo.addActionListener(new ActionListener() {
@@ -243,12 +261,9 @@ public class TrialDesignPanel extends JPanel {
                 }
                 else {
                     String expName = item.toString();
-                    List<TrialEntry> list = entriesByExperiment.get(expName);
-                    entryTableModel.setEntries(list);
+                    entryTableModel.setSelectedExperiment(expName);
 
-                    Set<String> locationNames = list.stream().map(TrialEntry::getLocation)
-                        .filter(s -> ! Check.isEmpty(s))
-                        .collect(Collectors.toSet());
+                    Set<String> locationNames = entryTableModel.getSelectedLocationNames();
                     locationsPanel.setLocationNames(locationNames);
                 }
             }
@@ -266,14 +281,13 @@ public class TrialDesignPanel extends JPanel {
                     .collect(Collectors.toSet());
 
                 locationsPanel.setLocationNames(locationNames);
-//                algorithmSelector.setEntries(entryTableModel.getEntries());
+                algorithmSelector.setEntries(entryTableModel.getEntries());
             }
         });
 
         tabbedPane.addTab("Manual Layout", manualLayoutPanel);
-//        if (RunMode.getRunMode().isDeveloper()) {
-//            tabbedPane.addTab("Trial Algorithm", algorithmSelector);
-//        }
+        tabbedPane.addTab("Trial Algorithm", algorithmSelector);
+
         tabbedPane.addChangeListener(tabChangeListener);
         updateEntryTypesAvailable();
 
@@ -308,17 +322,14 @@ public class TrialDesignPanel extends JPanel {
         dlg.setVisible(true);
 
         if (dlg.entryFile != null) {
-            entriesByExperiment = dlg.entryFile.getEntries().stream()
-                .collect(Collectors.groupingBy(TrialEntry::getExperimentName));
 
             entryTableModel.setEntryFile(dlg.entryFile);
 
-            Set<String> experimentNames = new TreeSet<>(entriesByExperiment.keySet());
+            Set<String> experimentNames = new TreeSet<>(entryTableModel.getExperimentNames());
 
             experimentModel.removeAllElements();
             if (experimentNames.isEmpty()) {
                 experimentCombo.setVisible(false);
-                entryTableModel.setEntries(dlg.entryFile.getEntries());
             }
             else {
                 for (String expName : experimentNames) {

@@ -31,15 +31,21 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EventListener;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiPredicate;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import javax.swing.event.EventListenerList;
+
 import com.diversityarrays.util.Check;
+import com.diversityarrays.util.Origin;
 import com.diversityarrays.util.Pair;
 
 import net.pearcan.io.IOUtil;
@@ -54,7 +60,7 @@ import net.pearcan.io.IOUtil;
 @SuppressWarnings("nls")
 public class PlantingBlock<E> implements Comparable<PlantingBlock<?>> {
 
-    private static final Map<Heading, Field> FIELD_BY_HEADING;
+	private static final Map<Heading, Field> FIELD_BY_HEADING;
 
     static {
         Map<Heading,Field> map = new HashMap<>();
@@ -90,16 +96,19 @@ public class PlantingBlock<E> implements Comparable<PlantingBlock<?>> {
         DIMENSION, // width x height
         ENTRY_TYPES,
         BORDER,     // N S E W
-
-        // ones above here have editors
+        ORIGIN, // the four Corner icons
+        // ones above here have dialog editors
         MINIMUM_CELL_COUNT,
-        SPATIALS_REQUIRED
+        SPATIALS_REQUIRED,
+        CONTENT,
+        ;
     }
 
     static public enum Attribute {
         DIMENSION("RxC", Dimension.class, "Size"),
         POSITION("X,Y", Point.class, "Position"),
         BORDERS("Borders", String.class, "Borders"),
+        ORIGIN("Origin", Origin.class, "Origin")
         ;
 
         public final Class<?> valueClass;
@@ -132,6 +141,8 @@ public class PlantingBlock<E> implements Comparable<PlantingBlock<?>> {
                 return new Dimension(t.getRowCount(), t.getColumnCount());
             case POSITION:
                 return new Point(t.getX(), t.getY());
+            case ORIGIN:
+                return t.getOrigin();
             default:
                 break;
             }
@@ -269,9 +280,7 @@ public class PlantingBlock<E> implements Comparable<PlantingBlock<?>> {
     private int rowCount;
     private int x;
     private int y;
-    private int spatialChecksCount;
-
-    private E content;
+    private int spatialChecksRequired;
 
     private Integer minimumCellCount;
 
@@ -291,11 +300,36 @@ public class PlantingBlock<E> implements Comparable<PlantingBlock<?>> {
                 designParams.nSpatials);
     }
 
-    public Set<WhatChanged> updateDesignParameters(DesignParams designParams) {
+    public PlantingBlock(int replicateNumber, String name, int nCols, int nRows, int nSpatials) {
+        this(replicateNumber, name,
+                nCols, nRows,
+                0, 0,
+                null,
+                nSpatials);
+    }
 
-//        new Exception("CHECK ME").printStackTrace();
+    private PlantingBlock(int replicateNumber, String name,
+            int nCols, int nRows,
+            int x, int y,
+            Integer mincc,
+            int nSpatials)
+    {
+        this.name = name;
+        this.replicateNumber = replicateNumber;
+        this.columnCount = nCols;
+        this.rowCount = nRows;
+        this.x = x;
+        this.y = y;
+        this.minimumCellCount = mincc;
+        this.spatialChecksRequired = nSpatials;
+    }
+
+	public Set<WhatChanged> updateDesignParameters(
+	        DesignParams designParams
+//	        , Function<DesignEntry, E> contentFactory
+	        )
+    {
         Set<WhatChanged> whatChanged = new HashSet<>();
-//        boolean changed = false;
 
         if (designParams.width != columnCount || designParams.height != rowCount) {
             // They may have changed but we might already be large enough
@@ -325,43 +359,46 @@ public class PlantingBlock<E> implements Comparable<PlantingBlock<?>> {
             whatChanged.add(WhatChanged.MINIMUM_CELL_COUNT);
         }
 
-        if (designParams.nSpatials != spatialChecksCount) {
-            spatialChecksCount = designParams.nSpatials;
+        if (designParams.nSpatials != spatialChecksRequired) {
+            spatialChecksRequired = designParams.nSpatials;
             whatChanged.add(WhatChanged.SPATIALS_REQUIRED);
         }
 
+//        if (designParams.manualMode) {
+//            // Manual positioning - we don't have XY
+//        }
+//        else {
+//
+//            Optional<List<PositionedDesignEntry<DesignEntry>>> optEntries =
+//                    designParams.getEntries(replicateNumber);
+//
+//            if (optEntries.isPresent()) {
+//                Optional<PositionedDesignEntry<DesignEntry>> foundWithout = optEntries.get().stream()
+//                    .filter(pde -> ! pde.getWhere().isPresent())
+//                    .findFirst();
+//                if (foundWithout.isPresent()) {
+//                    throw new IllegalStateException(
+//                            "Entry found without XYPos:" + foundWithout.get().getEntry().getEntryName());
+//                }
+//
+//                Map<Point, E> map = optEntries.get().stream()
+//                    .collect(Collectors.toMap(
+//                            (pde) -> {
+//                                Optional<XYPos> optxy = pde.getWhere();
+//                                XYPos xy = optxy.orElse(new XYPos(-1,-1));
+//                                return new Point(xy.x, xy.y);
+//                                },
+//                            (pde) -> contentFactory.apply(pde.getEntry())));
+//
+//                setContentUsingMap(map);
+//
+//                // Either of these could have changed, err on the side of caution
+//                // and assume that BOTH have changed.
+//                whatChanged.add(WhatChanged.POSITION);
+//                whatChanged.add(WhatChanged.ENTRY_TYPES);
+//            }
+//        }
         return whatChanged;
-    }
-
-    public PlantingBlock(int replicateNumber, String name, int nCols, int nRows, int nSpatials) {
-        this(replicateNumber, name,
-                nCols, nRows,
-                0, 0,
-                null,
-                nSpatials);
-    }
-
-    private PlantingBlock(int replicateNumber, String name,
-            int nCols, int nRows,
-            int x, int y,
-            Integer mincc,
-            int nSpatials)
-    {
-        this.name = name;
-        this.replicateNumber = replicateNumber;
-        this.columnCount = nCols;
-        this.rowCount = nRows;
-        this.x = x;
-        this.y = y;
-        this.minimumCellCount = mincc;
-        this.spatialChecksCount = nSpatials;
-    }
-
-    public E getContent() {
-        return content;
-    }
-    public void setContent(E e) {
-        this.content = e;
     }
 
     public Integer getMinimumCellCount() {
@@ -410,7 +447,12 @@ public class PlantingBlock<E> implements Comparable<PlantingBlock<?>> {
     }
 
     public void setBorder(Side side, int count) {
-        borderCountBySide[side.ordinal()] = Math.max(0, count);
+        int index = side.ordinal();
+        int oldCount = borderCountBySide[index];
+        borderCountBySide[index] = Math.max(0, count);
+        if (borderCountBySide[index] != oldCount) {
+            fireChanges(WhatChanged.BORDER);
+        }
     }
 
     public int getReplicateNumber() {
@@ -423,6 +465,7 @@ public class PlantingBlock<E> implements Comparable<PlantingBlock<?>> {
 
     public void setCanEditSize(boolean b) {
         canEditSize = b;
+//        fireChanges();
     }
 
     public String getName() {
@@ -433,16 +476,44 @@ public class PlantingBlock<E> implements Comparable<PlantingBlock<?>> {
         return columnCount;
     }
 
-    public void setColumnCount(int columnCount) {
+    public void setTemporaryColumnCount(int columnCount) {
+        setColumnCount(columnCount, true);
+    }
+    public void setFinalColumnCount(int columnCount) {
+        setColumnCount(columnCount, false);
+    }
+
+    private void setColumnCount(int columnCount, boolean temporary) {
         this.columnCount = columnCount;
+        removeContentOutsideBounds(temporary);
     }
 
     public int getRowCount() {
         return rowCount;
     }
 
-    public void setRowCount(int rowCount) {
+    public void setTemporaryRowCount(int rowCount) {
+        setRowCount(rowCount, true);
+    }
+    public void setFinalRowCount(int rowCount) {
+        setRowCount(rowCount, false);
+    }
+    private void setRowCount(int rowCount, boolean temporary) {
         this.rowCount = rowCount;
+        removeContentOutsideBounds(temporary);
+    }
+
+    private void removeContentOutsideBounds(boolean temporary) {
+        if (! temporary) {
+            List<Point> pointsToRemove = contentByPoint.keySet().stream()
+                    .filter(pt -> pt.x >= columnCount || pt.y >= rowCount)
+                    .collect(Collectors.toList());
+                if (! pointsToRemove.isEmpty()) {
+                    removeContentAt(pointsToRemove);
+                }
+        }
+        fireChanges(WhatChanged.DIMENSION);
+
     }
 
     public Dimension getSize() {
@@ -455,6 +526,7 @@ public class PlantingBlock<E> implements Comparable<PlantingBlock<?>> {
 
     public void setX(int x) {
         this.x = x;
+        fireChanges(WhatChanged.POSITION);
     }
 
     public int getY() {
@@ -463,13 +535,15 @@ public class PlantingBlock<E> implements Comparable<PlantingBlock<?>> {
 
     public void setY(int y) {
         this.y = y;
+        fireChanges(WhatChanged.POSITION);
     }
 
-    public void setSpatialChecksCount(int v) {
-        this.spatialChecksCount = v;
+    public void setSpatialChecksRequired(int v) {
+        this.spatialChecksRequired = v;
+        fireChanges(WhatChanged.SPATIALS_REQUIRED);
     }
-    public int getSpatialChecksCount() {
-        return spatialChecksCount;
+    public int getSpatialChecksRequired() {
+        return spatialChecksRequired;
     }
 
     @Transient
@@ -482,7 +556,7 @@ public class PlantingBlock<E> implements Comparable<PlantingBlock<?>> {
         return getRectangle().contains(pt);
     }
 
-    public Integer getFillerCount() {
+    public Optional<Integer> getFillerCount() {
         Integer result = null;
         if (minimumCellCount != null) {
             int excess = (columnCount * rowCount) - minimumCellCount;
@@ -490,11 +564,15 @@ public class PlantingBlock<E> implements Comparable<PlantingBlock<?>> {
                 result = excess;
             }
         }
-        return result;
+        return Optional.ofNullable(result);
     }
 
     public Point getLocation() {
         return new Point(x, y);
+    }
+
+    public boolean isEmpty() {
+        return contentByPoint.isEmpty();
     }
 
     public Map<Point, E> getContentByPoint() {
@@ -502,7 +580,7 @@ public class PlantingBlock<E> implements Comparable<PlantingBlock<?>> {
     }
 
     public Collection<E> getAllContents() {
-        return contentByPoint.values();
+        return Collections.unmodifiableCollection(contentByPoint.values());
     }
 
     public void visitContentByPoint(BiPredicate<Point, E> visitor) {
@@ -515,99 +593,92 @@ public class PlantingBlock<E> implements Comparable<PlantingBlock<?>> {
 
     private final Map<Point, E> contentByPoint = new HashMap<>();
 
-    public void clearContent() {
-        contentByPoint.clear();
+    private Origin origin = Origin.LOWER_LEFT;
+
+    public int getUserXcoord(int x) {
+        return OriginCoordTransform.getUserXcoord(origin, x, columnCount);
     }
 
-    public void clearEntryTypesOnly() {
+    public int getUserYcoord(int y) {
+        return OriginCoordTransform.getUserYcoord(origin, y, rowCount);
+    }
 
-        Map<Point, E> newContent = new HashMap<>();
-
-        BiPredicate<Point, E> visitor = new BiPredicate<Point, E>() {
-            @Override
-            public boolean test(Point pt, E e) {
-                newContent.put(pt, e);
-                return true;
-            }
-        };
-
-        for (Map.Entry<Point, E> me : contentByPoint.entrySet()) {
-            if (! visitor.test(me.getKey(), me.getValue())) {
-                break;
-            }
+    public void clearContent(Predicate<E> discardThese) {
+        Map<Point, E> oldContentByPoint = new HashMap<>(contentByPoint);
+        Map<Point, E> newContent = null;
+        if (discardThese != null) {
+            newContent = contentByPoint.entrySet().stream()
+                    // Note: inversion of the predicate
+                    // i.e. we keep the ones we do NOT discard
+                    .filter(e -> ! discardThese.test(e.getValue()))
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         }
-        contentByPoint.clear();
-        contentByPoint.putAll(newContent);
+        setNewContent(oldContentByPoint, newContent);
     }
 
-//    public Map<EntryType, Integer> getEntryTypeCounts() {
-//        return contentByPoint.entrySet().stream()
-//            .map(me -> me.getValue().first)
-//            .filter(e -> e != null)
-//            .collect(Collectors.toMap(Function.identity(),
-//                (t) -> new Integer(1),
-//                (a,b) -> a+b));
-//    }
-
-    public boolean setContentAt(Point modelPoint, E newContent) {
-        Point pt = new Point(modelPoint);
-        boolean contentChanged = false;
-        E oldContent = contentByPoint.remove(pt);
-
+    private void setNewContent(Map<Point, E> oldContentByPoint, Map<Point, E> newContent) {
+        contentByPoint.clear();
         if (newContent != null) {
-            contentByPoint.put(pt, newContent);
-            contentChanged = ! newContent.equals(oldContent);
+            contentByPoint.putAll(newContent);
         }
-        else {
-            // newContent is null
-            contentChanged = oldContent != null;
-        }
-        return contentChanged;
+        fireChanges(WhatChanged.CONTENT, oldContentByPoint);
     }
 
-    public List<Point> setContentUsing(Map<Point, E> newContentByPoint) {
+    public void removeContentAt(Collection<Point> points) {
+        setContentAtPoints(null, points);
+    }
+
+    public Collection<Point> setContentUsingMap(Map<Point, E> newContentByPoint) {
         if (Check.isEmpty(newContentByPoint)) {
             return Collections.emptyList();
         }
 
-        List<Point> changed = new ArrayList<>();
-        for (Point pt : newContentByPoint.keySet()) {
-            setContentAt(pt, newContentByPoint.get(pt), changed);
+        Map<Point, E> oldContentByPoint = new HashMap<>();
+        newContentByPoint.entrySet().stream()
+            .forEach(e -> setContentAt(e.getKey(), e.getValue(), oldContentByPoint));
+
+        if (! oldContentByPoint.isEmpty()) {
+            fireChanges(WhatChanged.CONTENT, oldContentByPoint);
         }
-        return changed;
+        return oldContentByPoint.keySet();
     }
 
-    public List<Point> setContentAtPoints(E newContent, Point ... points) {
-        if (points == null || points.length <= 0) {
-            return Collections.emptyList();
-        }
-
-        List<Point> changed = new ArrayList<>();
+    public Collection<Point> setContentAtPoints(E newContent, Collection<Point> points) {
+        HashMap<Point, E> oldContentByPoint = new HashMap<>();
         for (Point pt : points) {
-            setContentAt(pt, newContent, changed);
+            setContentAt(pt, newContent, oldContentByPoint);
         }
-        return changed;
+        if (! oldContentByPoint.isEmpty()) {
+            fireChanges(WhatChanged.CONTENT, oldContentByPoint);
+        }
+        return oldContentByPoint.keySet();
     }
 
-    public List<Point> addContentAt(E newContent, Point ... points) {
-
-        List<Point> changed = new ArrayList<>();
-
-        if (points != null) {
-            for (Point pt : points) {
-                setContentAt(pt, newContent, changed);
+    public Collection<Point> setContentAt(E newContent, Point point) {
+        if (point != null) {
+            HashMap<Point, E> oldContentByPoint = new HashMap<>();
+            setContentAt(point, newContent, oldContentByPoint);
+            if (! oldContentByPoint.isEmpty()) {
+                fireChanges(WhatChanged.CONTENT, oldContentByPoint);
             }
+            return oldContentByPoint.keySet();
         }
-        return changed;
+        return Collections.emptyList();
     }
 
+    /**
+     * Order of parameters is deliberately different to the public methods.
+     * @param where
+     * @param newContent
+     * @param oldContentByPoint
+     */
     private void setContentAt(
-            Point modelPoint,
+            Point where,
             E newContent,
-            List<Point> changed)
+            Map<Point, E> oldContentByPoint)
     {
         // Copy in case caller who supplied it changes it!
-        Point pt = new Point(modelPoint);
+        Point pt = new Point(where);
         E oldContent = contentByPoint.remove(pt);
         if (newContent != null) {
             contentByPoint.put(pt, newContent);
@@ -615,23 +686,63 @@ public class PlantingBlock<E> implements Comparable<PlantingBlock<?>> {
 
         if (newContent != null) {
             if (! newContent.equals(oldContent)) {
-                changed.add(pt);
+                oldContentByPoint.put(pt, oldContent);
             }
         }
         else {
             // newContent == null
             if (oldContent != null) {
-                changed.add(pt);
+                oldContentByPoint.put(pt, oldContent);
             }
         }
     }
 
-    public int getContentCount() {
-        return contentByPoint.size();
+    public int getContentCount(Predicate<E> onlyThese) {
+        if (onlyThese == null) {
+            return contentByPoint.size();
+        }
+        int result = (int) contentByPoint.values().stream().filter(onlyThese).count();
+        return result;
     }
 
     @Override
     public int compareTo(PlantingBlock<?> o) {
         return this.getName().compareToIgnoreCase(o.getName());
+    }
+
+    public Origin getOrigin() {
+        return origin;
+    }
+
+    public void setOrigin(Origin o) {
+        origin = o;
+        fireChanges(WhatChanged.ORIGIN);
+    }
+
+    static public interface PlantingBlockChangeListener<E> extends EventListener {
+        void blockChanged(PlantingBlock<E> source,
+                WhatChanged whatChanged,
+                Map<Point, E> oldContentByPoint);
+    }
+
+    private transient EventListenerList listenerList = new EventListenerList();
+
+    public void addPlantingBlockChangeListener(PlantingBlockChangeListener<E> l) {
+        listenerList.add(PlantingBlockChangeListener.class, l);
+    }
+
+    public void removePlantingBlockChangeListener(PlantingBlockChangeListener<E> l) {
+        listenerList.remove(PlantingBlockChangeListener.class, l);
+    }
+
+    protected void fireChanges(WhatChanged whatChanged) {
+        fireChanges(whatChanged, Collections.emptyMap());
+    }
+
+    @SuppressWarnings("unchecked")
+    protected void fireChanges(WhatChanged whatChanged, Map<Point, E> oldContentByPoint) {
+        for (PlantingBlockChangeListener<E> l : listenerList.getListeners(PlantingBlockChangeListener.class)) {
+            l.blockChanged(this, whatChanged, oldContentByPoint);
+        }
     }
 }

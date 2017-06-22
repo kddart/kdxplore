@@ -37,6 +37,8 @@ import com.diversityarrays.kdxplore.model.TraitAttribute.SortOrderAttribute;
 import com.diversityarrays.kdxplore.model.TraitAttribute.ValidationRuleAttribute;
 import com.diversityarrays.util.RunMode;
 
+import net.pearcan.util.SysoutMessagePrinter;
+
 public class TrialTraitsTableModel extends AbstractTableModel {
     
     private final List<TraitAttribute> traitAttributes = new ArrayList<>();
@@ -134,14 +136,23 @@ public class TrialTraitsTableModel extends AbstractTableModel {
 
 	@Override
 	public Object getValueAt(int rowIndex, int columnIndex) {
+		if (traitAttributes.size() <= 0 ) {			
+			try {
+				Thread.sleep(1);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+		
         if (columnIndex < 0 || columnIndex >= traitAttributes.size()) {
             return Object.class;
         }
         Trait trait = getTraitAt(rowIndex);
+        
         return traitAttributes.get(columnIndex).getAttributeValue(trait);
 	}
 
-	public Trait getTraitAt(int rowIndex) {
+	public Trait getTraitAt(int rowIndex) {		
 	    if  (rowIndex < 0 || rowIndex >= traitList.size()) {
 	        return null;
 	    }

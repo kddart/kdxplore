@@ -1,17 +1,17 @@
 /*
     KDXplore provides KDDart Data Exploration and Management
     Copyright (C) 2015,2016,2017  Diversity Arrays Technology, Pty Ltd.
-    
+
     KDXplore may be redistributed and may be modified under the terms
     of the GNU General Public License as published by the Free Software
     Foundation, either version 3 of the License, or (at your option)
     any later version.
-    
+
     KDXplore is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
-    
+
     You should have received a copy of the GNU General Public License
     along with KDXplore.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
@@ -48,135 +49,49 @@ public class TrialEntryTableModel extends AbstractTableModel {
 
     private TrialEntryFile entryFile;
     private List<TableColumnInfo<TrialEntry>> entryInfos = new ArrayList<>(); // BASIC_ENTRY_INFO);
-    private final List<TrialEntry> entries = new ArrayList<>();
+
+    private final List<TrialEntry> allEntries = new ArrayList<>();
+    private final List<TrialEntry> activeEntries = new ArrayList<>();
     private final List<EntryFactor> entryFactors = new ArrayList<>();
 
     private Integer plotTypeColumnIndex = null;
+	private Map<String, List<TrialEntry>> entriesByExperiment;
 
     public TrialEntryTableModel() {
     }
 
+
+	public TrialEntryFile getTrialEntryFile() {
+		return entryFile;
+	}
+
     public void setEntryFile(TrialEntryFile tef) {
         entryFile = tef;
 
-        setEntries(tef.getEntries());
+        List<TrialEntry> list = tef.getEntries();
+        allEntries.clear();
+        if (list != null) {
+        	allEntries.addAll(list);
+        }
 
+        entriesByExperiment = allEntries.stream()
+        		.filter(e -> ! Check.isEmpty(e.getExperimentName()))
+                .collect(Collectors.groupingBy(TrialEntry::getExperimentName));
         entryFactors.clear();
         entryFactors.addAll(tef.getEntryFactors());
-        plotTypeColumnIndex = null;
+
+        setSelectedExperiment(null);
 
         fireTableStructureChanged();
         fireEntryCountChanged();
+    }
+
+    public Set<String> getExperimentNames() {
+    	return entriesByExperiment.keySet();
     }
 
     public List<TrialEntry> getEntries() {
-        return Collections.unmodifiableList(entries);
-    }
-
-    public void setEntries(List<TrialEntry> list) {
-        entries.clear();
-        if (list != null) {
-            entries.addAll(list);
-        }
-
-        entryInfos = new ArrayList<>(); // BASIC_ENTRY_INFO);
-//        entryInfos = new ArrayList<>(BASIC_ENTRY_INFO);
-
-        Map<TrialHeading, String> userHeadings = entryFile.getUserHeadings();
-        String entryIdHeading = userHeadings.get(TrialHeading.ENTRY_ID);
-        if (Check.isEmpty(entryIdHeading)) {
-            entryIdHeading = TrialHeading.ENTRY_ID.display;
-        }
-        entryInfos.add(new TableColumnInfo<TrialEntry>(entryIdHeading, Integer.class) {
-            @Override
-            public Object getColumnValue(int rowIndex, TrialEntry te) {
-                return te.getEntryId();
-            }
-        });
-
-        String plotTypeHeading = userHeadings.get(TrialHeading.ENTRY_TYPE);
-        if (Check.isEmpty(plotTypeHeading)) {
-            plotTypeColumnIndex = null;
-        }
-        else {
-            plotTypeColumnIndex = entryInfos.size();
-
-            entryInfos.add(new TableColumnInfo<TrialEntry>(plotTypeHeading, EntryType.class) {
-                @Override
-                public Object getColumnValue(int rowIndex, TrialEntry te) {
-                    return te.getEntryType();
-                }
-            });
-        }
-
-        BiConsumer<TrialHeading, String> action = new BiConsumer<TrialHeading, String>() {
-            @Override
-            public void accept(TrialHeading th, String userHeading) {
-                switch (th) {
-                case DONT_USE:
-                    break;
-                case ENTRY_ID:
-                    // already done (mandatory first column)
-                    break;
-                case ENTRY_TYPE:
-                    // already done (optional second column)
-                    break;
-                case FACTOR:
-                    // done separately
-                    break;
-
-                case ENTRY_NAME:
-                    entryInfos.add(new TableColumnInfo<TrialEntry>(userHeading, String.class) {
-                        @Override
-                        public Object getColumnValue(int rowIndex, TrialEntry te) {
-                            return te.getEntryName();
-                        }
-                    });
-                    break;
-
-                case EXPERIMENT:
-                    entryInfos.add(new TableColumnInfo<TrialEntry>(userHeading, String.class) {
-                        @Override
-                        public Object getColumnValue(int rowIndex, TrialEntry te) {
-                            return te.getExperimentName();
-                        }
-                    });
-                    break;
-
-                case LOCATION:
-                    entryInfos.add(new TableColumnInfo<TrialEntry>(userHeading, String.class) {
-                        @Override
-                        public Object getColumnValue(int rowIndex, TrialEntry te) {
-                            return te.getLocation();
-                        }
-                    });
-                    break;
-
-                case NESTING:
-                    entryInfos.add(new TableColumnInfo<TrialEntry>(userHeading, String.class) {
-                        @Override
-                        public Object getColumnValue(int rowIndex, TrialEntry te) {
-                            return te.getNesting();
-                        }
-                    });
-                    break;
-
-                default:
-                    entryInfos.add(new TableColumnInfo<TrialEntry>(userHeading, String.class) {
-                        @Override
-                        public Object getColumnValue(int rowIndex, TrialEntry te) {
-                            return "?unsupported TrialHeading: " + th;
-                        }
-                    });
-                    break;
-                }
-            }
-        };
-        userHeadings.entrySet().stream()
-            .forEach(e -> action.accept(e.getKey(), e.getValue()));
-
-        fireTableStructureChanged();
-        fireEntryCountChanged();
+        return Collections.unmodifiableList(activeEntries);
     }
 
     public void addEntryCountChangeListener(EntryCountChangeListener l) {
@@ -193,8 +108,9 @@ public class TrialEntryTableModel extends AbstractTableModel {
 
     @Override
     public int getRowCount() {
-        return entries.size();
+        return activeEntries.size();
     }
+
     @Override
     public int getColumnCount() {
         return entryInfos.size() +
@@ -240,7 +156,7 @@ public class TrialEntryTableModel extends AbstractTableModel {
         }
         if (aValue instanceof EntryType) {
             EntryType et = (EntryType) aValue;
-            TrialEntry te = entries.get(rowIndex);
+            TrialEntry te = activeEntries.get(rowIndex);
             te.setEntryType(et);
             fireTableCellUpdated(rowIndex, columnIndex);
         }
@@ -248,7 +164,7 @@ public class TrialEntryTableModel extends AbstractTableModel {
 
     @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
-        TrialEntry te = entries.get(rowIndex);
+        TrialEntry te = activeEntries.get(rowIndex);
         if (columnIndex < entryInfos.size()) {
             return entryInfos.get(columnIndex).getColumnValue(rowIndex, te);
         }
@@ -263,10 +179,10 @@ public class TrialEntryTableModel extends AbstractTableModel {
     }
 
     public TrialEntry getEntryAt(int rowIndex) {
-        if (rowIndex < 0 || rowIndex >= entries.size()) {
+        if (rowIndex < 0 || rowIndex >= activeEntries.size()) {
             return null;
         }
-        return entries.get(rowIndex);
+        return activeEntries.get(rowIndex);
     }
 
     public void removeEntriesAt(List<Integer> modelRows) {
@@ -274,13 +190,12 @@ public class TrialEntryTableModel extends AbstractTableModel {
             .filter(e -> e != null)
             .collect(Collectors.toList());
         boolean anyRemoved = false;
+
         for (TrialEntry te : list) {
-            int row = entries.indexOf(te);
-            if (row >= 0) {
-                anyRemoved = true;
-                entries.remove(row);
-                fireTableRowsDeleted(row, row);
-            }
+        	if (removeEntry(te, activeEntries)) {
+        		anyRemoved = true;
+        	}
+        	removeEntry(te, allEntries);
         }
 
         if (anyRemoved) {
@@ -288,4 +203,135 @@ public class TrialEntryTableModel extends AbstractTableModel {
         }
     }
 
+	private boolean removeEntry(TrialEntry te, List<TrialEntry> entries) {
+		boolean result = false;
+        int row = entries.indexOf(te);
+        if (row >= 0) {
+            entries.remove(row);
+            if (entries == activeEntries) {
+            	result = true;
+                fireTableRowsDeleted(row, row);
+            }
+        }
+        return result;
+	}
+
+	public void setSelectedExperiment(String expName) {
+
+		List<TrialEntry> list = null;
+		if (expName != null) {
+			list = allEntries.stream()
+					.filter(e -> expName.equals(e.getExperimentName()))
+					.collect(Collectors.toList());
+		}
+		if (list == null) {
+			list = allEntries;
+		}
+		activeEntries.clear();
+		activeEntries.addAll(list);
+
+		entryInfos = new ArrayList<>();
+
+        Map<TrialHeading, String> userHeadings = entryFile.getUserHeadings();
+        String entryIdHeading = userHeadings.get(TrialHeading.ENTRY_ID);
+        if (Check.isEmpty(entryIdHeading)) {
+        	entryIdHeading = TrialHeading.ENTRY_ID.display;
+        }
+        entryInfos.add(new TableColumnInfo<TrialEntry>(entryIdHeading, Integer.class) {
+        	@Override
+        	public Object getColumnValue(int rowIndex, TrialEntry te) {
+        		return te.getEntryId();
+        	}
+        });
+
+        String plotTypeHeading = userHeadings.get(TrialHeading.ENTRY_TYPE);
+        if (Check.isEmpty(plotTypeHeading)) {
+        	plotTypeColumnIndex = null;
+        }
+        else {
+        	plotTypeColumnIndex = entryInfos.size();
+
+        	entryInfos.add(new TableColumnInfo<TrialEntry>(plotTypeHeading, EntryType.class) {
+        		@Override
+        		public Object getColumnValue(int rowIndex, TrialEntry te) {
+        			return te.getEntryType();
+        		}
+        	});
+        }
+
+        BiConsumer<TrialHeading, String> action = new BiConsumer<TrialHeading, String>() {
+        	@Override
+        	public void accept(TrialHeading th, String userHeading) {
+        		switch (th) {
+        		case DONT_USE:
+        			break;
+        		case ENTRY_ID:
+        			// already done (mandatory first column)
+        			break;
+        		case ENTRY_TYPE:
+        			// already done (optional second column)
+        			break;
+        		case FACTOR:
+        			// done separately
+        			break;
+
+        		case ENTRY_NAME:
+        			entryInfos.add(new TableColumnInfo<TrialEntry>(userHeading, String.class) {
+        				@Override
+        				public Object getColumnValue(int rowIndex, TrialEntry te) {
+        					return te.getEntryName();
+        				}
+        			});
+        			break;
+
+        		case EXPERIMENT:
+        			entryInfos.add(new TableColumnInfo<TrialEntry>(userHeading, String.class) {
+        				@Override
+        				public Object getColumnValue(int rowIndex, TrialEntry te) {
+        					return te.getExperimentName();
+        				}
+        			});
+        			break;
+
+        		case LOCATION:
+        			entryInfos.add(new TableColumnInfo<TrialEntry>(userHeading, String.class) {
+        				@Override
+        				public Object getColumnValue(int rowIndex, TrialEntry te) {
+        					return te.getLocation();
+        				}
+        			});
+        			break;
+
+        		case NESTING:
+        			entryInfos.add(new TableColumnInfo<TrialEntry>(userHeading, String.class) {
+        				@Override
+        				public Object getColumnValue(int rowIndex, TrialEntry te) {
+        					return te.getNesting();
+        				}
+        			});
+        			break;
+
+        		default:
+        			entryInfos.add(new TableColumnInfo<TrialEntry>(userHeading, String.class) {
+        				@Override
+        				public Object getColumnValue(int rowIndex, TrialEntry te) {
+        					return "?unsupported TrialHeading: " + th;
+        				}
+        			});
+        			break;
+        		}
+        	}
+        };
+        userHeadings.entrySet().stream()
+        .forEach(e -> action.accept(e.getKey(), e.getValue()));
+
+        fireTableStructureChanged();
+        fireEntryCountChanged();
+	}
+
+	public Set<String> getSelectedLocationNames() {
+		return activeEntries.stream().map(TrialEntry::getLocation)
+			.filter(s -> ! Check.isEmpty(s))
+			.collect(Collectors.toSet());
+	}
 }

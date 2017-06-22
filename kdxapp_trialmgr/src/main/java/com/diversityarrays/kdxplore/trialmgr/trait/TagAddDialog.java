@@ -35,13 +35,13 @@ import javax.swing.border.BevelBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+import com.diversityarrays.kdsmart.db.KDSmartDatabase;
+import com.diversityarrays.kdsmart.db.entities.Tag;
+import com.diversityarrays.util.UnicodeChars;
+
 import net.pearcan.ui.GuiUtil;
 import net.pearcan.ui.widget.PromptTextField;
 import net.pearcan.util.GBH;
-
-import com.diversityarrays.kdsmart.db.KDSmartDatabase;
-import com.diversityarrays.kdsmart.db.entities.Tag;
-import com.diversityarrays.kdsmart.field.UnicodeChars;
 
 public class TagAddDialog extends JDialog {
 	

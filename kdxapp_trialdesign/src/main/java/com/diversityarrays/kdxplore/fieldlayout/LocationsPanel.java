@@ -1,17 +1,17 @@
 /*
     KDXplore provides KDDart Data Exploration and Management
     Copyright (C) 2015,2016,2017  Diversity Arrays Technology, Pty Ltd.
-    
+
     KDXplore may be redistributed and may be modified under the terms
     of the GNU General Public License as published by the Free Software
     Foundation, either version 3 of the License, or (at your option)
     any later version.
-    
+
     KDXplore is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
-    
+
     You should have received a copy of the GNU General Public License
     along with KDXplore.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -60,7 +60,7 @@ import com.diversityarrays.kdxplore.design.ReplicateDetailsModel;
 import com.diversityarrays.kdxplore.fielddesign.DefaultFieldModel;
 import com.diversityarrays.kdxplore.fielddesign.FieldLayoutEditFrame;
 import com.diversityarrays.kdxplore.fieldlayout.PlantingBlock.WhatChanged;
-import com.diversityarrays.kdxplore.trialdesign.TrialEntry;
+import com.diversityarrays.kdxplore.trialdesign.TrialEntryFile;
 import com.diversityarrays.kdxplore.ui.HelpUtils;
 import com.diversityarrays.kdxplore.ui.Toast;
 import com.diversityarrays.util.Check;
@@ -189,7 +189,7 @@ public class LocationsPanel extends JPanel {
     };
     private final Function<EntryType, Color> colorSupplier;
     private final Map<EntryType, Integer> entryTypeCounts = new HashMap<>();
-    private final Supplier<List<TrialEntry>> trialEntriesSupplier;
+    private final Supplier<TrialEntryFile> trialEntryFileSupplier;
     private final Consumer<String> messagePrinter;
 
     public LocationsPanel(
@@ -197,7 +197,7 @@ public class LocationsPanel extends JPanel {
             Consumer<SiteLocation> onLocationChanged,
             IntConsumer onLocationCountChanged,
             PlantingBlockFactory<ReplicateCellContent> blockFactory,
-            Supplier<List<TrialEntry>> trialEntriesSupplier,
+            Supplier<TrialEntryFile> trialEntryFileSupplier,
             Consumer<String> messagePrinter
             )
     {
@@ -206,7 +206,7 @@ public class LocationsPanel extends JPanel {
         this.colorSupplier = colorSupplier;
         this.onLocationCountChanged = onLocationCountChanged;
         this.blockFactory = blockFactory;
-        this.trialEntriesSupplier = trialEntriesSupplier;
+        this.trialEntryFileSupplier = trialEntryFileSupplier;
         this.messagePrinter = messagePrinter;
 
         replicatesTable = new LocationReplicatesTable(blockFactory, colorSupplier, onLocationChanged);
@@ -385,7 +385,7 @@ public class LocationsPanel extends JPanel {
                     blockFactory,
                     colorSupplier,
                     entryTypeCounts,
-                    trialEntriesSupplier,
+                    trialEntryFileSupplier,
                     messagePrinter);
             if (optionalOffset == null) {
                 // Centre on screen

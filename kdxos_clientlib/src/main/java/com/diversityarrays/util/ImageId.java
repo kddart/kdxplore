@@ -1,17 +1,17 @@
 /*
     KDXplore provides KDDart Data Exploration and Management
     Copyright (C) 2015,2016,2017  Diversity Arrays Technology, Pty Ltd.
-    
+
     KDXplore may be redistributed and may be modified under the terms
     of the GNU General Public License as published by the Free Software
     Foundation, either version 3 of the License, or (at your option)
     any later version.
-    
+
     KDXplore is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
-    
+
     You should have received a copy of the GNU General Public License
     along with KDXplore.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -52,6 +52,8 @@ public enum ImageId {
 
     CHECK_SELECTED("check-selected.png"),
     CHECK_SELECTED_FOCUS("check-selected-focus.png"),
+
+    UNCHECK_SELECTED("uncheck-selected.png"),
 
     CHECK_UNSELECTED("check-unselected.png"),
     CHECK_UNSELECTED_FOCUS("check-unselected-focus.png"),

@@ -1,17 +1,17 @@
 /*
     KDXplore provides KDDart Data Exploration and Management
     Copyright (C) 2015,2016,2017  Diversity Arrays Technology, Pty Ltd.
-    
+
     KDXplore may be redistributed and may be modified under the terms
     of the GNU General Public License as published by the Free Software
     Foundation, either version 3 of the License, or (at your option)
     any later version.
-    
+
     KDXplore is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
-    
+
     You should have received a copy of the GNU General Public License
     along with KDXplore.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -70,13 +70,40 @@ import net.pearcan.util.BackgroundRunner;
 import net.pearcan.util.BackgroundTask;
 import net.pearcan.util.MessagePrinter;
 
+/**
+ *
+ * To the left in the {@link TrialExplorerPanel} is the
+ * {@link TrialOverviewPanel}.
+ * See also {@link TrialViewPanel}
+ * <pre>
+ *  +-- TrialDetailsPanel --+
+ *  | (x) (x) (x) (x)       |
+ *  | +- TrialViewPanel --+ |
+ *  | |  _______________  | |
+ *  | | [ details of    ] | |
+ *  | | [ selected      ] | |
+ *  | | [ Trial         ] | |
+ *  | | [_______________] | |
+ *  | |                   | |
+ *  | | - - - - - - - - - | |
+ *  | |  _______________  | |
+ *  | | [ Sample Groups ] | |
+ *  | | [ of selected   ] | |
+ *  | | [ Trial         ] | |
+ *  | | [_______________] | |
+ *  | |___________________| |
+ *  |_______________________|
+ * </pre>
+ * @author brianp
+ *
+ */
 public class TrialDetailsPanel extends JPanel {
-	
+
 	static private final String CARD_NO_TRIAL = "NoTrial"; //$NON-NLS-1$
 	static private final String CARD_HAVE_TRIAL = "HaveTrial"; //$NON-NLS-1$
 
 	class BarcodesMenuHandler {
-	    
+
 	    JPopupMenu menu;
 	    public void handleMouseClick(Point pt) {
 	        if (menu == null) {
@@ -85,52 +112,50 @@ public class TrialDetailsPanel extends JPanel {
                 menu.add(printTraitBarcodesAction);
                 menu.add(printPlotBarcodesAction);
                 menu.add(printSpecimenBarcodesAction);
-                
-                
-                KDSmartDatabase database = offlineData.getKdxploreDatabase().getKDXploreKSmartDatabase();
-                try {
-                    int plotCount = database.getPlotCount(trial);
-                    printPlotBarcodesAction.setEnabled(plotCount > 0);
-                } catch (IOException e1) {
-                    printPlotBarcodesAction.setEnabled(false);
-                }
-                
-                try {
-                    printSpecimenBarcodesAction.setEnabled(database.getSpecimenCount(trial) > 0);
-                } catch (IOException ignore) {
-                    printSpecimenBarcodesAction.setEnabled(false);
-                }
+	        }
+
+	        KDSmartDatabase database = offlineData.getKdxploreDatabase().getKDXploreKSmartDatabase();
+            try {
+                printPlotBarcodesAction.setEnabled(database.getPlotCount(trial) > 0);
+            } catch (IOException e1) {
+                printPlotBarcodesAction.setEnabled(false);
             }
-            
-            menu.show(barcodesMenuButton, pt.x, pt.y);  
+
+            try {
+                printSpecimenBarcodesAction.setEnabled(database.getSpecimenCount(trial) > 0);
+            } catch (IOException ignore) {
+                printSpecimenBarcodesAction.setEnabled(false);
+            }
+
+            menu.show(barcodesMenuButton, pt.x, pt.y);
 	    }
 	}
-	
+
 	private final BarcodesMenuHandler barcodesMenuHandler = new BarcodesMenuHandler();
-	
+
 	private final JLabel barcodesMenuButton;
 
-	private final Action generateBarcodesAction = new AbstractAction() {
+	private final Action generateBarcodesAction = new AbstractAction(Msg.ACTION_GENERATE_BARCODES()) {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 
 			BackgroundTask<Void,Void> task = new BackgroundTask<Void, Void>("Generating...", false) {
-				
+
 				@Override
 				public void onTaskComplete(Void arg0) {
 					// NO-OP
 				}
-				
+
 				@Override
 				public void onException(Throwable err) {
 					reportError("Unexpected Error: " + err.getMessage(), err);
 				}
-				
+
 				@Override
 				public void onCancel(CancellationException arg0) {
 					messagePrinter.println("Cancelled");
 				}
-				
+
 				@Override
 				public Void generateResult(Closure<Void> arg0) throws Exception {
 					doGenerateBarcodes(trial);
@@ -140,25 +165,25 @@ public class TrialDetailsPanel extends JPanel {
 			backgroundRunner.runBackgroundTask(task);
 		}
 	};
-	
+
 	protected Closure<File> outputDirectoryChanged = new Closure<File>() {
 		@Override
 		public void execute(File dir) {
 			if (dir != null) {
 				KdxplorePreferences.getInstance().saveOutputDirectory(dir);
-			}			
+			}
 		}
 	};
-	
-	private final Action printTraitBarcodesAction = new AbstractAction() {
+
+	private final Action printTraitBarcodesAction = new AbstractAction(Msg.ACTION_PRINT_TRAIT_BARCODES()) {
 		@Override
-		public void actionPerformed(ActionEvent e) {			
+		public void actionPerformed(ActionEvent e) {
 			KdxploreDatabase kdxdb = offlineData.getKdxploreDatabase();
 			try {
 				Set<Trait> traits = kdxdb.getTrialTraits(trial.getTrialId());
-				
+
 				if (traits.isEmpty()) {
-				    MsgBox.info(TrialDetailsPanel.this, 
+				    MsgBox.info(TrialDetailsPanel.this,
 				            Msg.MSG_NO_TRAITS_ALLOCATED(),
 				            Msg.TITLE_PRINT_TRAIT_BARCODES(""));
 				    return;
@@ -167,28 +192,28 @@ public class TrialDetailsPanel extends JPanel {
 				        Msg.TITLE_PRINT_TRAIT_BARCODES(""),
 				        trial,
 						new ArrayList<>(traits),
-						outputDirectoryChanged, 
+						outputDirectoryChanged,
 						getOutputDirectory(),
 						kdxdb)
 					.setVisible(true);
 			} catch (IOException e1) {
-				MsgBox.error(TrialDetailsPanel.this, 
-						e1, 
+				MsgBox.error(TrialDetailsPanel.this,
+						e1,
 						Msg.TITLE_PRINT_TRAIT_BARCODES(" - Database Error")); //$NON-NLS-1$
 			}
 		}
 	};
-	
-	private final Action printPlotBarcodesAction = new AbstractAction() {
+
+	private final Action printPlotBarcodesAction = new AbstractAction(Msg.ACTION_PRINT_PLOT_BARCODES()) {
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			
+
 			KdxploreDatabase kdxdb = offlineData.getKdxploreDatabase();
 			final KDSmartDatabase database = kdxdb.getKDXploreKSmartDatabase();
-			
+
 			try {
-				List<Plot> plots = KDSmartDbUtil.getDatabasePlots(database, 
-						trial.getTrialId(), 
+				List<Plot> plots = KDSmartDbUtil.getDatabasePlots(database,
+						trial.getTrialId(),
 						SampleGroupChoice.NO_TAGS_SAMPLE_GROUP,
 						KDSmartDatabase.WithPlotAttributesOption.WITH_PLOT_ATTRIBUTES);
 				new BarcodeSheetDialog(
@@ -197,28 +222,28 @@ public class TrialDetailsPanel extends JPanel {
 						trial,
 						plots,
 						null, // No specimens
-						outputDirectoryChanged, 
+						outputDirectoryChanged,
 						getOutputDirectory(),
                         kdxdb)
 					.setVisible(true);
 			} catch (IOException e1) {
-				MsgBox.error(TrialDetailsPanel.this, e1, 
+				MsgBox.error(TrialDetailsPanel.this, e1,
 				        Msg.TITLE_PRINT_PLOT_BARCODES(" - Database Error")); //$NON-NLS-1$
 			}
 		}
 	};
-	
-	private final Action printSpecimenBarcodesAction = new AbstractAction() {
+
+	private final Action printSpecimenBarcodesAction = new AbstractAction(Msg.ACTION_PRINT_INDIV_BARCODES()) {
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			
+
 			KdxploreDatabase kdxdb = offlineData.getKdxploreDatabase();
 			KDSmartDatabase database = kdxdb.getKDXploreKSmartDatabase();
-			
+
 			try {
 				List<Specimen> specimens = getSpecimens(database);
-				List<Plot> plots = KDSmartDbUtil.getDatabasePlots(database, 
-						trial.getTrialId(), 
+				List<Plot> plots = KDSmartDbUtil.getDatabasePlots(database,
+						trial.getTrialId(),
 						SampleGroupChoice.NO_TAGS_SAMPLE_GROUP,
 						KDSmartDatabase.WithPlotAttributesOption.WITH_PLOT_ATTRIBUTES);
 				new BarcodeSheetDialog(GuiUtil.getOwnerWindow(TrialDetailsPanel.this),
@@ -226,22 +251,22 @@ public class TrialDetailsPanel extends JPanel {
 						trial,
 						plots,
 						specimens,
-						outputDirectoryChanged, 
+						outputDirectoryChanged,
 						getOutputDirectory(),
                         kdxdb)
 				    .setVisible(true);
 			}
 			catch (IOException e1) {
-			    MsgBox.error(TrialDetailsPanel.this, e1, 
+			    MsgBox.error(TrialDetailsPanel.this, e1,
 			            Msg.TITLE_PRINT_SUBPLOT_BARCODES(" - Database Error")); //$NON-NLS-1$
 			}
-			
+
 
 		}
 	};
-	
+
 	private List<Specimen> getSpecimens(KDSmartDatabase db) throws IOException {
-		final List<Specimen> specimens = new ArrayList<Specimen>();
+		final List<Specimen> specimens = new ArrayList<>();
 		Predicate<Specimen> visitor = new Predicate<Specimen>() {
 			@Override
 			public boolean evaluate(Specimen s) {
@@ -252,7 +277,7 @@ public class TrialDetailsPanel extends JPanel {
 		db.visitSpecimensForTrial(trial.getEntityId(), visitor);
 		return specimens;
 	}
-	
+
 	private File getOutputDirectory() {
 		File outdir = KdxplorePreferences.getInstance().getOutputDirectory();
 		if (outdir==null || ! outdir.isDirectory()) {
@@ -262,11 +287,11 @@ public class TrialDetailsPanel extends JPanel {
 	}
 
 	static class PrintTrialBarcodeDialog {
-		
-	}
-	
 
-	
+	}
+
+
+
 	private final Action editTrialAction;
 	private final Action uploadTrialAction;
 	private final Action refreshTrialInfoAction;
@@ -275,35 +300,35 @@ public class TrialDetailsPanel extends JPanel {
 
 	private final CardLayout cardLayout = new CardLayout();
 	private final JPanel cardPanel = new JPanel(cardLayout);
-	
+
 	private final TrialViewPanel trialViewPanel;
 	private final OfflineData offlineData;
 	private final MessagePrinter messagePrinter;
 	private final BackgroundRunner backgroundRunner;
-	
+
     private final Consumer<Trial> onTraitInstancesRemoved;
-	
+
 	TrialDetailsPanel(
 	        WindowOpener<JFrame> windowOpener,
 			MessagePrinter mp,
-			BackgroundRunner backgroundRunner, 
+			BackgroundRunner backgroundRunner,
 			OfflineData offlineData,
-			Action editTrialAction, 
-			Action seedPrepAction, 
-			Action harvestAction, 
-			Action uploadTrialAction, 
+			Action editTrialAction,
+			Action seedPrepAction,
+			Action harvestAction,
+			Action uploadTrialAction,
 			Action refreshTrialInfoAction,
-			ImageIcon barcodeIcon, 
+			ImageIcon barcodeIcon,
 			Transformer<Trial, Boolean> checkIfEditorActive,
-			Consumer<Trial> onTraitInstancesRemoved) 
+			Consumer<Trial> onTraitInstancesRemoved)
 	{
 		super(new BorderLayout());
-		
+
 		this.editTrialAction = editTrialAction;
 		this.uploadTrialAction = uploadTrialAction;
 		this.refreshTrialInfoAction = refreshTrialInfoAction;
 		this.onTraitInstancesRemoved = onTraitInstancesRemoved;
-	
+
 		this.messagePrinter = mp;
 		this.backgroundRunner = backgroundRunner;
 		this.offlineData = offlineData;
@@ -324,10 +349,10 @@ public class TrialDetailsPanel extends JPanel {
                 }
             }
         });
-		
+
 		trialViewPanel = new TrialViewPanel(windowOpener,
-		        offlineData, 
-		        checkIfEditorActive, 
+		        offlineData,
+		        checkIfEditorActive,
 		        onTraitInstancesRemoved,
 		        mp);
 
@@ -339,7 +364,7 @@ public class TrialDetailsPanel extends JPanel {
 		buttons.add(new JButton(harvestAction));
 		buttons.add(barcodesMenuButton);
 		buttons.add(Box.createHorizontalGlue());
-		
+
 //		JPanel trialPanel = new JPanel(new BorderLayout());
 //		trialPanel.add(buttons, BorderLayout.NORTH);
 //		trialPanel.add(fieldViewPanel, BorderLayout.CENTER);
@@ -348,7 +373,7 @@ public class TrialDetailsPanel extends JPanel {
 		cardPanel.add(trialViewPanel, CARD_HAVE_TRIAL);
 
 		setSelectedTrial(null);
-		
+
 		add(buttons, BorderLayout.NORTH);
 		add(cardPanel, BorderLayout.CENTER);
 	}
@@ -366,12 +391,12 @@ public class TrialDetailsPanel extends JPanel {
 		refreshTrialInfoAction.setEnabled(trial != null);
 		uploadTrialAction.setEnabled(trial != null);
 		barcodesMenuButton.setEnabled(trial != null);
-		
+
 
 		trialViewPanel.setTrial(trial);
 	}
-	
-	
+
+
 	private boolean isNullOrEmpty(String s) {
 		return s==null || s.trim().isEmpty();
 	}
@@ -390,14 +415,14 @@ public class TrialDetailsPanel extends JPanel {
 		KdxploreDatabase kdxdb = offlineData.getKdxploreDatabase();
 		final KDSmartDatabase database = kdxdb.getKDXploreKSmartDatabase();
 
-		
-		
+
+
 		String what = "";
 		try {
 			final List<Plot> plotsToUpdate = new ArrayList<>();
 			final List<Specimen> specimensToUpdate = new ArrayList<>();
 			final List<Trait> traitsToUpdate = new ArrayList<>();
-			
+
 			what = " for Traits";
 			for (Trait trait : kdxdb.getTrialTraits(trial.getTrialId())) {
 				if (isNullOrEmpty(trait.getBarcode())) {
@@ -405,22 +430,22 @@ public class TrialDetailsPanel extends JPanel {
 					traitsToUpdate.add(trait);
 				}
 			}
-			
+
 			// = = = = = = = =
-			
+
 			what = " for Plots and Specimens";
 
 			TrialItemVisitor<Plot> trialPlotVisitor = new TrialItemVisitor<Plot>() {
 				@Override
 				public void setExpectedItemCount(int count) {
-				}						
+				}
 				@Override
 				public boolean consumeItem(Plot plot) throws IOException {
 					if (isNullOrEmpty(plot.getBarcode())) {
 						BarcodeFactory.setPlotBarcode(plot);
 						plotsToUpdate.add(plot);
 					}
-					
+
 					for (Specimen specimen : plot.getSpecimens()) {
 						if (isNullOrEmpty(specimen.getBarcode())) {
 							BarcodeFactory.setSpecimenBarcode(specimen);
@@ -430,9 +455,9 @@ public class TrialDetailsPanel extends JPanel {
 					return true;
 				}
 			};
-			
-			Either<? extends Throwable, Boolean> either1 = database.visitPlotsForTrial(trial.getTrialId(), 
-					SampleGroupChoice.ANY_SAMPLE_GROUP, 
+
+			Either<? extends Throwable, Boolean> either1 = database.visitPlotsForTrial(trial.getTrialId(),
+					SampleGroupChoice.ANY_SAMPLE_GROUP,
 					KDSmartDatabase.WithPlotAttributesOption.WITHOUT_PLOT_ATTRIBUTES,
 					trialPlotVisitor);
 	        if (! either1.isRight()) {
@@ -442,13 +467,13 @@ public class TrialDetailsPanel extends JPanel {
 	        	}
 	            throw new IOException(error);
 	        }
-	        
+
 			int nTraits = traitsToUpdate.size();
 			int nPlots = plotsToUpdate.size();
 			int nSpecimens = specimensToUpdate.size();
-			
+
 			if ( (nTraits + nPlots + nSpecimens) > 0 ) {
-			
+
 				BatchHandler<Void> callable = new BatchHandler<Void>() {
 
 					@Override
@@ -459,7 +484,7 @@ public class TrialDetailsPanel extends JPanel {
 						for (Plot plot : plotsToUpdate) {
 							database.savePlot(plot, false);
 						}
-						
+
 						for (Specimen specimen : specimensToUpdate) {
 							database.saveSpecimen(specimen, false);
 						}
@@ -492,19 +517,19 @@ public class TrialDetailsPanel extends JPanel {
 			}
 			else {
 				JOptionPane.showMessageDialog(TrialDetailsPanel.this,
-						"All Traits,Plots and Specimens have barcodes", 
-						"Add Barcodes", 
+						"All Traits,Plots and Specimens have barcodes",
+						"Add Barcodes",
 						JOptionPane.INFORMATION_MESSAGE);
 			}
 
-			
+
 		} catch (IOException err) {
 			reportError("Unable to get Trial data" + what + "\n" + err.getMessage(), err);
 		}
 	}
 
 	public void updateTrial(Trial changedTrial, int[] sampleGroupIds, Plot[] changedPlots) {
-		trialViewPanel.updateIfSameTrial(changedTrial.getTrialId());		
+		trialViewPanel.updateIfSameTrial(changedTrial.getTrialId());
 	}
 
 }

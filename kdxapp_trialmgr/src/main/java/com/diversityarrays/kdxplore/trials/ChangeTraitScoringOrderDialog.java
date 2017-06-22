@@ -36,9 +36,9 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import com.diversityarrays.kdsmart.db.entities.Trait;
-import com.diversityarrays.kdsmart.field.UnicodeChars;
 import com.diversityarrays.util.ImageId;
 import com.diversityarrays.util.KDClientUtils;
+import com.diversityarrays.util.UnicodeChars;
 
 import net.pearcan.ui.table.BspAbstractTableModel;
 
@@ -151,8 +151,7 @@ public class ChangeTraitScoringOrderDialog extends JDialog {
         side.add(new JButton(moveUpAction));
         side.add(new JButton(moveDownAction));
         side.add(Box.createVerticalGlue());
-
-        
+       
         Container cp = getContentPane();
         
         cp.add(new JScrollPane(table), BorderLayout.CENTER);

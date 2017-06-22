@@ -1,17 +1,17 @@
 /*
     KDXplore provides KDDart Data Exploration and Management
     Copyright (C) 2015,2016,2017  Diversity Arrays Technology, Pty Ltd.
-    
+
     KDXplore may be redistributed and may be modified under the terms
     of the GNU General Public License as published by the Free Software
     Foundation, either version 3 of the License, or (at your option)
     any later version.
-    
+
     KDXplore is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
-    
+
     You should have received a copy of the GNU General Public License
     along with KDXplore.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -69,12 +69,12 @@ public class ChoiceTreeTableModel<P,C> extends DefaultTreeTableModel{
         public String getName() {
             return nameProvider.apply(getChildItem());
         }
-        
+
         @SuppressWarnings("unchecked")
         public C getChildItem() {
             return (C) getUserObject();
         }
-        
+
         @Override
         protected boolean isChild() {
             return true;
@@ -96,8 +96,8 @@ public class ChoiceTreeTableModel<P,C> extends DefaultTreeTableModel{
         private final BiFunction<P,C,String> nameProvider;
         private C singleChild;
 
-        ParentNode(P parent, List<C> childList, 
-                BiFunction<P,C,String> nameProvider, 
+        ParentNode(P parent, List<C> childList,
+                BiFunction<P,C,String> nameProvider,
                 Function<C, String> childNameProvider)
         {
             setUserObject(parent);
@@ -149,17 +149,17 @@ public class ChoiceTreeTableModel<P,C> extends DefaultTreeTableModel{
                 }
             }
         }
-        
+
         @Override
         public String getName() {
             return nameProvider.apply(getParentItem(), singleChild);
         }
-        
+
         @SuppressWarnings("unchecked")
         public P getParentItem() {
             return (P) getUserObject();
         }
-        
+
         @Override
         protected boolean isChild() {
             return false;
@@ -228,9 +228,9 @@ public class ChoiceTreeTableModel<P,C> extends DefaultTreeTableModel{
     public ChoiceTreeTableModel(
             String nameHeading,
             String useHeading,
-            Map<P, List<C>> childrenByParent, 
-            BiFunction<P, C, String> parentNameProvider, 
-            Function<C, String> childNameProvider) 
+            Map<P, List<C>> childrenByParent,
+            BiFunction<P, C, String> parentNameProvider,
+            Function<C, String> childNameProvider)
     {
         super(createRoot(), Arrays.asList(nameHeading, useHeading));
 
@@ -238,15 +238,15 @@ public class ChoiceTreeTableModel<P,C> extends DefaultTreeTableModel{
 
         for (P p : childrenByParent.keySet()) {
             List<C> list = childrenByParent.get(p);
-            ParentNode pnode = new ParentNode(p, 
-                    list, 
+            ParentNode pnode = new ParentNode(p,
+                    list,
                     parentNameProvider,
                     childNameProvider);
             parentNodeByItem.put(p, pnode);
             myRoot.insert(pnode, myRoot.getChildCount());
         }
     }
-    
+
     @SuppressWarnings("unchecked")
     public OptionalInt getChildChosenCountIfNotAllChosen(P p) {
         int count = 0;
@@ -266,14 +266,14 @@ public class ChoiceTreeTableModel<P,C> extends DefaultTreeTableModel{
                     }
                 }
             }
-            
+
             if (! allChosen) {
                 return OptionalInt.of(count);
             }
         }
         return OptionalInt.empty();
     }
-    
+
     public void visitChosenNodes(Predicate<ChoiceNode> visitor) {
         for (Enumeration<? extends MutableTreeTableNode> children = myRoot.children();
                 children.hasMoreElements(); )
@@ -302,28 +302,19 @@ public class ChoiceTreeTableModel<P,C> extends DefaultTreeTableModel{
     }
 
     public boolean getAnyChosen() {
-        Predicate<ChoiceNode> visitor = new Predicate<ChoiceNode>() {
-            @Override
-            public boolean test(ChoiceNode node) {
-                return ! node.isChosen();
-            }
-        };
-        visitChosenNodes(visitor);
-
-        Optional<ChoiceNode> opt = findFirst(visitor);
-
+        Optional<ChoiceNode> opt = findFirst(node -> node.isChosen());
         return opt.isPresent();
     }
 
     @SuppressWarnings("rawtypes")
-    public List<ChoiceNode> setAllChosen(boolean b) {
+    public List<ChoiceNode> setAllChosen(boolean choose) {
         List<ChoiceNode> result = new ArrayList<>();
         for (Enumeration<? extends MutableTreeTableNode> children = myRoot.children();
                 children.hasMoreElements(); )
         {
             MutableTreeTableNode node = children.nextElement();
             if (node instanceof ChoiceTreeTableModel.ParentNode) {
-                ((ChoiceTreeTableModel.ParentNode) node).setChosen(true, result, true);
+                ((ChoiceTreeTableModel.ParentNode) node).setChosen(choose, result, true);
             }
         }
         return result;
@@ -352,7 +343,7 @@ public class ChoiceTreeTableModel<P,C> extends DefaultTreeTableModel{
         }
         return Object.class;
     }
-    
+
     @Override
     public boolean isCellEditable(Object node, int col) {
         boolean result = false;
@@ -382,7 +373,7 @@ public class ChoiceTreeTableModel<P,C> extends DefaultTreeTableModel{
             }
         }
     }
-    
+
     private EventListenerList listenerList = new EventListenerList();
 
     protected void fireChoiceChanged(ChoiceNode ... nodes) {

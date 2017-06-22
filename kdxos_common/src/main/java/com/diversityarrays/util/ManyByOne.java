@@ -1,27 +1,30 @@
 /*
     KDXplore provides KDDart Data Exploration and Management
     Copyright (C) 2015,2016,2017  Diversity Arrays Technology, Pty Ltd.
-    
+
     KDXplore may be redistributed and may be modified under the terms
     of the GNU General Public License as published by the Free Software
     Foundation, either version 3 of the License, or (at your option)
     any later version.
-    
+
     KDXplore is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
-    
+
     You should have received a copy of the GNU General Public License
     along with KDXplore.  If not, see <http://www.gnu.org/licenses/>.
 */
 package com.diversityarrays.util;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiPredicate;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 /**
@@ -32,7 +35,7 @@ import java.util.function.Supplier;
  * @param <V> the value class
  * @param <VC> the value "collection" class
  */
-public class ManyByOne<K,V,VC> {
+public abstract class ManyByOne<K,V,VC> {
 
     protected final Map<K, VC> map;
     private final Supplier<VC> vcSupplier;
@@ -49,6 +52,42 @@ public class ManyByOne<K,V,VC> {
         this.adder = adder;
         this.remover = remover;
     }
+
+    @Override
+    public String toString() {
+        return map.toString();
+    }
+
+    public Map<K, VC> getMap() {
+        return Collections.unmodifiableMap(map);
+    }
+
+    /**
+     * Remove from the ManyByOne map all of the keys
+     * that have empty collections.
+     * @return
+     */
+    abstract public List<K> clean();
+
+    /**
+     * Return the number of keys in the map.
+     * @return
+     */
+    public int size() {
+        return map.size();
+    }
+
+    /**
+     * Remove any values for which predicate tests true.
+     * @param key
+     * @param predicate
+     * @return
+     */
+    abstract public List<V> removeValues(K key, Predicate<V> predicate);
+
+    abstract public Optional<V> findFirst(K key, Predicate<V> predicate);
+
+    abstract public Optional<V> findAny(K key, Predicate<V> predicate);
 
     public Set<K> keySet() {
         return map.keySet();
@@ -102,6 +141,12 @@ public class ManyByOne<K,V,VC> {
     public boolean addKeyValue(K key, V value) {
         VC valueColl = addKey(key);
         return adder.test(value, valueColl);
+    }
+
+    public void addKeyValues(K key, Collection<V> values) {
+    	VC valueColl = addKey(key);
+    	values.stream()
+    		.forEach((v) -> adder.test(v, valueColl));
     }
 
     public VC removeKey(K key) {

@@ -1,17 +1,17 @@
 /*
     KDXplore provides KDDart Data Exploration and Management
     Copyright (C) 2015,2016,2017  Diversity Arrays Technology, Pty Ltd.
-    
+
     KDXplore may be redistributed and may be modified under the terms
     of the GNU General Public License as published by the Free Software
     Foundation, either version 3 of the License, or (at your option)
     any later version.
-    
+
     KDXplore is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
-    
+
     You should have received a copy of the GNU General Public License
     along with KDXplore.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -20,6 +20,7 @@ package com.diversityarrays.kdxplore.fieldlayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Window;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 import javax.swing.JLabel;
@@ -96,8 +97,8 @@ class ChangePlantingBlockSizeDialog extends ChangeDimensionDialog {
                 new Dimension(tb.getColumnCount(), tb.getRowCount()),
                 tb.getMinimumCellCount(),
                 (sz) -> {
-                    tb.setColumnCount(sz.width);
-                    tb.setRowCount(sz.height);
+                    tb.setFinalColumnCount(sz.width);
+                    tb.setFinalRowCount(sz.height);
                     tbm.blockChanged(WhatChanged.DIMENSION, tb);
                 }
                 );
@@ -135,10 +136,10 @@ class ChangePlantingBlockSizeDialog extends ChangeDimensionDialog {
             }
         }
 
-        plantingBlock.setColumnCount(wid);
-        plantingBlock.setRowCount(hyt);
-        Integer fc = plantingBlock.getFillerCount();
-        fillerCount.setText(fc==null ? "" : fc.toString());
+        plantingBlock.setTemporaryColumnCount(wid);
+        plantingBlock.setTemporaryRowCount(hyt);
+        Optional<Integer> fc_opt = plantingBlock.getFillerCount();
+        fillerCount.setText(fc_opt.isPresent() ? fc_opt.get().toString() : "");
         trialBlockModel.blockChanged(WhatChanged.DIMENSION, plantingBlock);
     }
 }

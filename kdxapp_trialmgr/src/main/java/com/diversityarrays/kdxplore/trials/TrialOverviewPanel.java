@@ -1,17 +1,17 @@
 /*
     KDXplore provides KDDart Data Exploration and Management
     Copyright (C) 2015,2016,2017  Diversity Arrays Technology, Pty Ltd.
-    
+
     KDXplore may be redistributed and may be modified under the terms
     of the GNU General Public License as published by the Free Software
     Foundation, either version 3 of the License, or (at your option)
     any later version.
-    
+
     KDXplore is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
-    
+
     You should have received a copy of the GNU General Public License
     along with KDXplore.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -115,17 +115,17 @@ public class TrialOverviewPanel extends JPanel {
 
     // Used to signal to TrialExplorerPanel to handle the request to edit the Trial
 	public static final String EDIT_TRIAL_COMMAND = "editTrial"; //$NON-NLS-1$
-	
+
 	private static final int MAX_INITIAL_VISIBLE_TRIAL_ROWS = 15;
 
 	private static int EVENT_COUNT = 0;
-	
+
 	private boolean developer = RunMode.getRunMode().isDeveloper();
 
 	private final OfflineData offlineData;
-	
+
 	private final int lineLengthLimit = KdxplorePreferences.getInstance().getTooltipLineLengthLimit();
-	
+
 	private final TrialTraitsTableModel trialTraitsTableModel = new TrialTraitsTableModel();
 	private final JTable trialTraitsTable = new JTable(trialTraitsTableModel) {
 		@Override
@@ -149,7 +149,7 @@ public class TrialOverviewPanel extends JPanel {
 								html.append(" (#").append(trait.getTraitId()).append(")");
 							}
 							Html.appendHtmlLines(html,
-									trait.getTraitDescription(), 
+									trait.getTraitDescription(),
 									lineLengthLimit);
 							return html.toString();
 						}
@@ -159,13 +159,13 @@ public class TrialOverviewPanel extends JPanel {
 			return super.getToolTipText(event);
 		}
 	};
-	
+
 	private final TrialTableModel trialTableModel = new TrialTableModel();
 	private final JTable trialsTable = new JTable(trialTableModel) {
 
 		@Override
 		public String getToolTipText(MouseEvent event) {
-			
+
 			Point pt = event.getPoint();
 			if (pt != null) {
 				int vrow = trialsTable.rowAtPoint(pt);
@@ -189,7 +189,7 @@ public class TrialOverviewPanel extends JPanel {
                                 html.append("<HR>id=").append(trial.getTrialId())
                                 .append(", kddid=").append(trial.getIdDownloaded());
                             }
-							
+
 							return html.toString();
 						}
 					}
@@ -197,7 +197,7 @@ public class TrialOverviewPanel extends JPanel {
 			}
 			return super.getToolTipText(event);
 		}
-		
+
 	};
 
 	private final OfflineDataChangeListener offlineDataChangeListener = new OfflineDataChangeListener() {
@@ -206,9 +206,11 @@ public class TrialOverviewPanel extends JPanel {
 		public void offlineDataChanged(Object source, String reason, KdxploreDatabase oldDb, KdxploreDatabase newDb) {
 			if (oldDb != null) {
 				oldDb.removeEntityChangeListener(trialChangeListener);
+				oldDb.removeEntityChangeListener(traitChangeListener);
 			}
 			if  (newDb != null) {
 				newDb.addEntityChangeListener(trialChangeListener);
+				newDb.addEntityChangeListener(traitChangeListener);
 			}
 			refreshTrialTableModel();
 		}
@@ -244,7 +246,7 @@ public class TrialOverviewPanel extends JPanel {
 			refreshTrialTableModel();
 		}
 	};
-	
+
 	private TraitChangeListener traitChangeListener = new TraitChangeListener() {
 
 		@Override
@@ -258,8 +260,8 @@ public class TrialOverviewPanel extends JPanel {
 		}
 
 		@Override
-		public void entitiesRemoved(KDSmartDatabase db, Set<Integer> trialIds) {
-			trialTableModel.removeTrials(trialIds.toArray(new Integer[trialIds.size()]));
+		public void entitiesRemoved(KDSmartDatabase db, Set<Integer> traitIds) {
+			refreshTrialTableModel();
 		}
 
 		@Override
@@ -267,39 +269,39 @@ public class TrialOverviewPanel extends JPanel {
 			refreshTrialTableModel();
 		}
 	};
-	
+
 	private final Action addTraitAction = new AbstractAction("Add...") {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 		    doAddTraitsAndOrInstances();
-		}		
+		}
 	};
-	
+
 	private final Action setScoringOrderAction = new AbstractAction("Scoring...") {
 		@Override
 		public void actionPerformed(ActionEvent e) {
-		    
+
 		    final Trial selectedTrial = trialTraitsTableModel.getSelectedTrial();
 		    if (selectedTrial == null) {
 		        return;
 		    }
 		    ChangeTraitScoringOrderDialog dlg = new ChangeTraitScoringOrderDialog(
-		            GuiUtil.getOwnerWindow(TrialOverviewPanel.this), 
+		            GuiUtil.getOwnerWindow(TrialOverviewPanel.this),
 		            trialTraitsTableModel.getTraitList());
 		    dlg.setLocationRelativeTo(trialTraitsTable);
 		    dlg.setVisible(true);
-		    
+
 		    if (dlg.newTraitOrder != null) {
-		        
+
 		        Map<Integer,Integer> orderByTraitId = new HashMap<>();
 		        int scoringSortOrder = 0;
 		        for (Trait t : dlg.newTraitOrder) {
 		            orderByTraitId.put(t.getTraitId(), scoringSortOrder);
 		            ++scoringSortOrder;
 		        }
-		        
+
                 KDSmartDatabase kdsdb = offlineData.getKdxploreDatabase().getKDXploreKSmartDatabase();
-                
+
                 final Map<Integer, List<TraitInstance>> traitInstancesByTraitId = new HashMap<>();
                 Predicate<TraitInstance> visitor = new Predicate<TraitInstance>() {
                     @Override
@@ -316,7 +318,7 @@ public class TrialOverviewPanel extends JPanel {
                 try {
                     kdsdb.visitTraitInstancesForTrial(selectedTrial.getTrialId(),
                             WithTraitOption.ONLY_NON_CALC_TRAITS, visitor);
-                    
+
                     Set<TraitInstance> traitInstances = new HashSet<>();
 
                     for (Integer traitId : traitInstancesByTraitId.keySet()) {
@@ -332,13 +334,13 @@ public class TrialOverviewPanel extends JPanel {
                         }
                     }
                     kdsdb.saveTraitInstances(traitInstances);
-                    
+
                     refreshTrialTableModel();
 //                    trialTraitsTableModel.setNewTraitOrder(selectedTrial, dlg.newTraitOrder);
                 }
                 catch (IOException err) {
                     MsgBox.error(TrialOverviewPanel.this, err.getMessage(), "Unable to Save Changes - Database Error");
-                }   
+                }
 		    }
 		}
 	};
@@ -351,12 +353,12 @@ public class TrialOverviewPanel extends JPanel {
         }
 	};
 	private final JButton refreshTrialTraitsButton = new JButton(refreshTrialTraitsAction);
-	
+
 	private final Action removeTraitAction = new AbstractAction("Remove") {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 		    List<Integer> modelRows = GuiUtil.getSelectedModelRows(trialTraitsTable);
-		    
+
 		    try {
 		        Trial trial = trialTraitsTableModel.getSelectedTrial();
 
@@ -374,15 +376,15 @@ public class TrialOverviewPanel extends JPanel {
                     .map(trialTraitsTableModel::getTraitAt)
                     .filter(t -> t != null)
                     .collect(Collectors.groupingBy(canDeleteClassifier));
-                
+
                 List<Trait> canDelete = traitsByCanDelete.get(Boolean.TRUE);
                 List<Trait> cannotDelete = traitsByCanDelete.get(Boolean.FALSE);
-                
+
                 boolean proceed = false;
                 if (Check.isEmpty(cannotDelete)) {
                     // They are all valid for removal
                     switch (canDelete.size()) {
-                    case 0: 
+                    case 0:
                         break;
                     case 1:
                         proceed = true;
@@ -390,7 +392,7 @@ public class TrialOverviewPanel extends JPanel {
                     default:
                         if (JOptionPane.YES_OPTION ==
                             JOptionPane.showConfirmDialog(TrialOverviewPanel.this,
-                                    HelpUtils.makeListInScrollPane(canDelete, Trait::getTraitName), 
+                                    HelpUtils.makeListInScrollPane(canDelete, Trait::getTraitName),
                                     "Confirm Trait Removal",
                                     JOptionPane.YES_NO_OPTION))
                         {
@@ -400,27 +402,27 @@ public class TrialOverviewPanel extends JPanel {
                 }
                 else {
                     // Some are not valid for removal
-                    
+
                     Box box = Box.createVerticalBox();
                     box.add(GuiUtil.createLabelSeparator("Traits with data"));
                     box.add(HelpUtils.makeListInScrollPane(cannotDelete, Trait::getTraitName));
-                    
+
                     if (Check.isEmpty(canDelete)) {
                         // ... and none are valid!
                         JOptionPane.showMessageDialog(TrialOverviewPanel.this,
-                                box, 
+                                box,
                                 "Unable to Remove",
                                 JOptionPane.WARNING_MESSAGE);
                     }
                     else {
                         // ... and some are valid
-                        
+
                         box.add(GuiUtil.createLabelSeparator("Remove:"));
                         box.add(HelpUtils.makeListInScrollPane(canDelete, Trait::getTraitName));
-                        
+
                         if (JOptionPane.YES_OPTION ==
                                 JOptionPane.showConfirmDialog(TrialOverviewPanel.this,
-                                        box, 
+                                        box,
                                         "Confirm Trait Removal",
                                         JOptionPane.YES_NO_OPTION))
                             {
@@ -428,14 +430,14 @@ public class TrialOverviewPanel extends JPanel {
                             }
                     }
                 }
-                
+
                 if (proceed) {
                     KDSmartDatabase kdsdb = offlineData.getKdxploreDatabase().getKDXploreKSmartDatabase();
-                    
+
                     BatchHandler<Boolean> callable = new BatchHandler<Boolean>() {
                         @Override
                         public Boolean call() throws Exception {
-                            kdsdb.removeTraitInstancesFromTrial(trial, canDelete);
+                            kdsdb.removeTraitsFromTrial(trial, canDelete);
                             return Boolean.TRUE;
                         }
 
@@ -446,7 +448,7 @@ public class TrialOverviewPanel extends JPanel {
                     };
                     Either<Exception, Boolean> either = kdsdb.doBatch(callable);
                     if (either.isRight()) {
-                        
+
                         refreshTrialTableModel();
 
                         MsgBox.info(TrialOverviewPanel.this,
@@ -457,19 +459,19 @@ public class TrialOverviewPanel extends JPanel {
                         MsgBox.error(TrialOverviewPanel.this, either.left(), "Database Error");
                     }
                 }
-                
+
 		    } catch (IOException e1) {
 		        MsgBox.error(TrialOverviewPanel.this, e1, "Remove Traits - Database Error");
             }
-		}		
+		}
 	};
-	
+
 	private final MessagePrinter messagePrinter;
 
 	private TraitExplorer traitExplorer;
-	
-	public TrialOverviewPanel(String title, 
-			OfflineData offdata, 
+
+	public TrialOverviewPanel(String title,
+			OfflineData offdata,
 			TrialExplorerManager manager,
 			FileListTransferHandler flth,
 			MessagePrinter mp,
@@ -481,6 +483,7 @@ public class TrialOverviewPanel extends JPanel {
 		KdxploreDatabase kdxdb = offlineData.getKdxploreDatabase();
 		if (kdxdb != null) {
 			kdxdb.addEntityChangeListener(trialChangeListener);
+			kdxdb.addEntityChangeListener(traitChangeListener);
 		}
 
 		this.messagePrinter = mp;
@@ -513,7 +516,7 @@ public class TrialOverviewPanel extends JPanel {
 				}
 			}
 		});
-		
+
 		GuiUtil.setVisibleRowCount(trialsTable, MAX_INITIAL_VISIBLE_TRIAL_ROWS);
 
 		offlineData.addOfflineDataChangeListener(offlineDataChangeListener);
@@ -528,7 +531,7 @@ public class TrialOverviewPanel extends JPanel {
 			@Override
 			public void tableChanged(TableModelEvent e) {
 				updateAddTraitAction();
-				updateRemoveTraitAction();	
+				updateRemoveTraitAction();
 				updateScoringOrderAction();
 			}
 		});
@@ -568,7 +571,7 @@ public class TrialOverviewPanel extends JPanel {
 						selectedTraits = modelRows.stream()
 								.map(trialTraitsTableModel::getTraitAt)
 								.collect(Collectors.toList());
-						
+
 						if (popupMenu == null) {
 							popupMenu = new JPopupMenu();
 							popupMenu.add(showTraitsAction);
@@ -598,21 +601,21 @@ public class TrialOverviewPanel extends JPanel {
 		KDClientUtils.initAction(ImageId.TRAIT_ORDER_24, setScoringOrderAction, "Define Trait Scoring Order");
 
 		Box buttons = Box.createHorizontalBox();
-		
+
         buttons.add(new JButton(setScoringOrderAction));
 		buttons.add(Box.createHorizontalGlue());
 		buttons.add(new JButton(addTraitAction));
 		buttons.add(new JButton(removeTraitAction));
         buttons.add(Box.createHorizontalStrut(10));
         buttons.add(refreshTrialTraitsButton);
-		
+
 		JPanel traitsPanel = new JPanel(new BorderLayout());
-		traitsPanel.add(GuiUtil.createLabelSeparator("Uses Traits", buttons), 
+		traitsPanel.add(GuiUtil.createLabelSeparator("Uses Traits", buttons),
 				BorderLayout.NORTH);
-		traitsPanel.add(new PromptScrollPane(trialTraitsTable, 
+		traitsPanel.add(new PromptScrollPane(trialTraitsTable,
 				"If the (single) selected Trial has Traits they will appear here"),
 				BorderLayout.CENTER);
-		
+
 		JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
 				new JScrollPane(trialsTable),
 				traitsPanel);
@@ -620,18 +623,18 @@ public class TrialOverviewPanel extends JPanel {
 
 		add(splitPane, BorderLayout.CENTER);
 	}
-	
+
     public void addActionListener(ActionListener l) {
 		listenerList.add(ActionListener.class, l);
 	}
-	
+
 	protected void fireEditCommand(MouseEvent e) {
 		ActionEvent event = new ActionEvent(this, ++EVENT_COUNT, EDIT_TRIAL_COMMAND);
 		for (ActionListener l : listenerList.getListeners(ActionListener.class)) {
 			l.actionPerformed(event);
 		}
 	}
-	
+
 	public List<Trial> getAllTrials() {
 	    List<Trial> result = new ArrayList<>();
 	    for (int rowIndex = trialTableModel.getRowCount(); --rowIndex >= 0; ) {
@@ -661,7 +664,7 @@ public class TrialOverviewPanel extends JPanel {
 	public boolean hasNoTrials() {
 		return trialTableModel.getRowCount() <= 0;
 	}
-	
+
 	protected TrialPayload getPayload(Trial tr, boolean autocreate) {
 		TrialPayload result = payloadByRecord.get(tr);
 		if (result == null && autocreate) {
@@ -683,7 +686,7 @@ public class TrialOverviewPanel extends JPanel {
 	protected void handleTrialChanged(Trial trial) {
 		trialTableModel.trialChanged(trial.getTrialId());
 	}
-	
+
 	public void refreshTrialTraits() {
 	    refreshTrialTableModel();
 	}
@@ -695,12 +698,12 @@ public class TrialOverviewPanel extends JPanel {
             return;
         }
 	    Trial selectedTrial = trialTraitsTableModel.getSelectedTrial();
-	    
+
         ListSelectionModel lsm = trialsTable.getSelectionModel();
 		try {
 	        lsm.setValueIsAdjusting(true);
 //			trialsTable.clearSelection();
-			
+
 			Map<Trial, List<SampleGroup>> trialsAndSampleGroups = kdxdb.getTrialsAndSampleGroups(KdxploreDatabase.WithSamplesOption.WITHOUT_SAMPLES);
 			trialTableModel.setTrialsAndSampleGroups(trialsAndSampleGroups);
 
@@ -709,7 +712,7 @@ public class TrialOverviewPanel extends JPanel {
 			Map<Trial,Map<Trait,Integer>> traitSsoByTrial = new HashMap<>();
 
 			for (Trial trial : trialsAndSampleGroups.keySet()) {
-				
+
 			    Predicate<TraitInstance> traitInstanceVisitor = new Predicate<TraitInstance>() {
 					@Override
 					public boolean evaluate(TraitInstance ti) {
@@ -722,10 +725,10 @@ public class TrialOverviewPanel extends JPanel {
 						return Boolean.TRUE;
 					}
 				};
-				
-				kdsdb.visitTraitInstancesForTrial(trial.getTrialId(), 
-				        WithTraitOption.ALL_WITH_TRAITS, 
-						traitInstanceVisitor);	
+
+				kdsdb.visitTraitInstancesForTrial(trial.getTrialId(),
+				        WithTraitOption.ALL_WITH_TRAITS,
+						traitInstanceVisitor);
 			}
 
 			trialTraitsTableModel.setTraitsByTrial(traitSsoByTrial);
@@ -734,7 +737,7 @@ public class TrialOverviewPanel extends JPanel {
 			MsgBox.error(TrialOverviewPanel.this, e.getMessage(), "Problem Getting Trials");
 		} finally {
             lsm.clearSelection();
-		    
+
 		    int modelRow = trialTableModel.indexOfTrial(selectedTrial);
 		    if (modelRow >= 0) {
 		        int viewRow = trialsTable.convertRowIndexToView(modelRow);
@@ -742,17 +745,17 @@ public class TrialOverviewPanel extends JPanel {
 		            lsm.setSelectionInterval(viewRow, viewRow);
 		        }
 		    }
-		    
+
 	        lsm.setValueIsAdjusting(false);
 		}
 	}
-	
+
 	private void trialAdded(Trial trial) {
 		refreshTrialTableModel();
         trialTraitsTableModel.setSelectedTrial(trial);
 		selectTrial(trial);
 	}
-	
+
 	public void handleTrialsLoaded(List<Trial> newTrials) {
 		refreshTrialTableModel();
 		if (! newTrials.isEmpty()) {
@@ -780,7 +783,7 @@ public class TrialOverviewPanel extends JPanel {
 
 	public List<Trial> getSelectedTrials() {
 		List<Trial> trials = new ArrayList<>();
-	
+
 		List<Integer> modelRows = GuiUtil.getSelectedModelRows(trialsTable);
 		if (! modelRows.isEmpty()) {
 			for (int row : modelRows) {
@@ -794,15 +797,15 @@ public class TrialOverviewPanel extends JPanel {
 	public int getTrialCount() {
 		return trialTableModel.getRowCount();
 	}
-	
+
     private void updateScoringOrderAction() {
         setScoringOrderAction.setEnabled(trialTraitsTableModel.getRowCount() > 0);
     }
-    
+
     private void updateRefreshAction() {
         refreshTrialTraitsAction.setEnabled(trialTableModel.getRowCount() > 0);
     }
-    
+
 	private void updateRemoveTraitAction() {
         removeTraitAction.setEnabled(trialTraitsTable.getSelectedRowCount() > 0);
 	}
@@ -810,16 +813,16 @@ public class TrialOverviewPanel extends JPanel {
 	private void updateAddTraitAction() {
 		addTraitAction.setEnabled(trialTraitsTableModel.getSelectedTrial() != null);
 	}
-	
+
 //	class SortOrderAndTrait {
 //		public final int scoringSortOrder;
 //		public final Trait trait;
-//		
+//
 //		SortOrderAndTrait(int sso, Trait t) {
 //			scoringSortOrder = sso;
 //			trait = t;
 //		}
-//		
+//
 //		public Trait getTrait() {
 //			return trait;
 //		}
@@ -831,7 +834,11 @@ public class TrialOverviewPanel extends JPanel {
 
     private void doAddTraitsAndOrInstances() {
         try {
-            
+            Trial selectedTrial = trialTraitsTableModel.getSelectedTrial();
+            if (selectedTrial == null) {
+            	return;
+            }
+
             Set<Integer> currentTraitIds = trialTraitsTableModel.getTraitList().stream()
                     .map(Trait::getTraitId)
                     .collect(Collectors.toSet());
@@ -841,24 +848,30 @@ public class TrialOverviewPanel extends JPanel {
                 .filter(trt -> ! currentTraitIds.contains(trt.getTraitId()))
                 .collect(Collectors.toList());
 
-            Trial selectedTrial = trialTraitsTableModel.getSelectedTrial();
+            if (unusedTraits.isEmpty()) {
+            	MsgBox.info(TrialOverviewPanel.this,
+            			"This Trial already has all the Traits assigned",
+            			Msg.TITLE_ADD_TRAITS_TO_TRIAL(selectedTrial.getTrialName()));
+            	return;
+            }
+
             AddTraitsDialog dlg = new AddTraitsDialog(
-                    GuiUtil.getOwnerWindow(TrialOverviewPanel.this), 
+                    GuiUtil.getOwnerWindow(TrialOverviewPanel.this),
                     selectedTrial,
                     unusedTraits);
-            
+
             Dimension sz = dlg.getSize();
             dlg.setSize((int) (sz.width * 1.4), sz.height);
 
             dlg.setVisible(true);
-            
+
             Map<Trait,List<Integer>> map = dlg.getTraitAndInstanceNumber();
             if (map != null) {
                 doAddTraitInstances(selectedTrial, map);
             }
         } catch (IOException e1) {
-            MsgBox.error(TrialOverviewPanel.this, 
-                    e1, 
+            MsgBox.error(TrialOverviewPanel.this,
+                    e1,
                     "Add Traits - Database Error");
         }
     }
@@ -890,10 +903,10 @@ public class TrialOverviewPanel extends JPanel {
 
         int maxSsoIncrement = 1;
         if (ssoUseCount.uniqueSet().size() == 1
-            && 
+            &&
             maxSso == 0
             &&
-            ssoUseCount.getCount(maxSso) > 1) 
+            ssoUseCount.getCount(maxSso) > 1)
         {
             // Special hack for Trials that haven't yet been "sorted".
             // (i.e. all the SSOs are the same value
@@ -934,7 +947,7 @@ public class TrialOverviewPanel extends JPanel {
                 ti.setTraitId(trait.getTraitId());
                 ti.setTrialId(trialId);
                 ti.setUsedForScoring(true);
-                
+
                 traitInstances.add(ti);
 
                 List<TraitInstance> list = instancesByLevel.get(trait.getTraitLevel());
@@ -948,23 +961,23 @@ public class TrialOverviewPanel extends JPanel {
 
         KdxploreDatabase kdxdb = offlineData.getKdxploreDatabase();
         KDSmartDatabase kdsdb = kdxdb.getKDXploreKSmartDatabase();
-        
+
         Map<Integer, DeviceIdentifier> devidMap = kdxdb.getDeviceIdentifierMap();
         Optional<DeviceIdentifier> opt_devid = devidMap.values().stream().filter(devid -> DeviceType.EDITED.equals(devid.getDeviceType())).findFirst();
-        
+
         List<KdxSample> samples;
         if (opt_devid.isPresent()) {
             DeviceIdentifier curated = opt_devid.get();
             List<SampleGroup> sampleGroups = kdxdb.getSampleGroups(trialId, KdxploreDatabase.WithSamplesOption.WITH_SAMPLES);
             int curatedSampleGroupId = curated.getDeviceIdentifierId();
-            
+
             Optional<SampleGroup> opt_sg = sampleGroups.stream().filter(sg -> curatedSampleGroupId == sg.getDeviceIdentifierId()).findFirst();
             if (opt_sg.isPresent()) {
-                samples = new ArrayList<KdxSample>();
+                samples = new ArrayList<>();
 
                 List<TraitInstance> plotInstances = instancesByLevel.get(TraitLevel.PLOT);
                 List<TraitInstance> subPlotInstances = instancesByLevel.get(TraitLevel.SPECIMEN);
-                
+
                 Consumer<KdxSample> sampleConsumer = new Consumer<KdxSample>() {
                     @Override
                     public void accept(KdxSample sample) {
@@ -977,20 +990,20 @@ public class TrialOverviewPanel extends JPanel {
                     @Override
                     public boolean consumeItem(Plot plot) {
                         DatabaseUtil.createSamples(
-                                trialId, 
-                                plot, 
-                                curatedSampleGroupId, 
-                                null, // previousSamplesByKey 
-                                plotInstances, 
-                                subPlotInstances, 
+                                trialId,
+                                plot,
+                                curatedSampleGroupId,
+                                null, // previousSamplesByKey
+                                plotInstances,
+                                subPlotInstances,
                                 sampleConsumer);
                         return true;
                     }
                 };
 
-                kdsdb.visitPlotsForTrial(trialId, SampleGroupChoice.NO_TAGS_SAMPLE_GROUP, 
+                kdsdb.visitPlotsForTrial(trialId, SampleGroupChoice.NO_TAGS_SAMPLE_GROUP,
                         KDSmartDatabase.WithPlotAttributesOption.WITHOUT_PLOT_ATTRIBUTES,
-                        plotVisitor);                
+                        plotVisitor);
             }
             else {
                 samples = null;
@@ -1015,7 +1028,7 @@ public class TrialOverviewPanel extends JPanel {
                 return true;
             }
         };
-        
+
         boolean saved = true;
         Either<Exception, Void> either = kdsdb.doBatch(batchHandler);
         if (either.isLeft()) {
@@ -1030,7 +1043,8 @@ public class TrialOverviewPanel extends JPanel {
             String prefix = multipleTraitInstances ? "Trait Instances Added:\n" : "Traits Added:\n";
 
             Function<Trait, String> nameFactory = new Function<Trait, String>() {
-                public String apply(Trait trait) {
+                @Override
+				public String apply(Trait trait) {
                     List<Integer> instanceNumbers = instanceNumbersByTrait.get(trait);
                     if (instanceNumbers == null) {
                         return null;
@@ -1048,7 +1062,7 @@ public class TrialOverviewPanel extends JPanel {
                 .collect(Collectors.joining("\n", prefix, "\n------"));  //$NON-NLS-1$//$NON-NLS-2$
 
             messagePrinter.println(selection);
-            
+
             if (samples != null) {
                 messagePrinter.println("Samples Added: " + samples.size());
             }

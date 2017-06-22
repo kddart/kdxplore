@@ -1,17 +1,17 @@
 /*
     KDXplore provides KDDart Data Exploration and Management
     Copyright (C) 2015,2016,2017  Diversity Arrays Technology, Pty Ltd.
-    
+
     KDXplore may be redistributed and may be modified under the terms
     of the GNU General Public License as published by the Free Software
     Foundation, either version 3 of the License, or (at your option)
     any later version.
-    
+
     KDXplore is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
-    
+
     You should have received a copy of the GNU General Public License
     along with KDXplore.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -51,10 +51,10 @@ import com.diversityarrays.kdsmart.db.entities.Trait;
 import com.diversityarrays.kdsmart.db.entities.TraitLevel;
 import com.diversityarrays.kdsmart.db.entities.TraitNameStyle;
 import com.diversityarrays.kdsmart.db.entities.Trial;
-import com.diversityarrays.kdxplore.data.tool.OkCancelDialog;
 import com.diversityarrays.util.BooleanRenderer;
 import com.diversityarrays.util.Check;
 import com.diversityarrays.util.FilterTextField;
+import com.diversityarrays.util.OkCancelDialog;
 import com.diversityarrays.util.TableColumnInfo;
 
 import net.pearcan.dnd.TableTransferHandler;
@@ -145,7 +145,6 @@ public class AddTraitsDialog extends OkCancelDialog {
 
 	            if (showInstanceCount) {
                     editableInstanceNumbersColumnIndex = columnInfos.size();
-
                     columnInfos.add(new TableColumnInfo<Trait>(Msg.COLHDG_INSTANCE_NUMBERS(), String.class) {
                         @Override
                         public Object getColumnValue(int rowIndex, Trait t) {
@@ -303,11 +302,11 @@ public class AddTraitsDialog extends OkCancelDialog {
                             instancesToCreateByTrait.put(trait, spec);
                             nInstanceTobeCreatedTrait.put(trait, list);
 
-                            if (editableInstanceNumbersColumnIndex > 0) {
+                            if (editableInstanceNumbersColumnIndex >= 0) {
                                 fireTableCellUpdated(rowIndex, editableInstanceNumbersColumnIndex);
                             }
 
-                            if (instanceNumberListColumnIndex > 0) {
+                            if (instanceNumberListColumnIndex >= 0) {
                                 fireTableCellUpdated(rowIndex, instanceNumberListColumnIndex);
                             }
                         }
@@ -338,8 +337,6 @@ public class AddTraitsDialog extends OkCancelDialog {
                             }
                         }
                     }
-//
-//
 //                    // Changing instance count - but this may also change "chosen"
 //                    if (aValue instanceof Integer) {
 //                        Trait trait = filteredTraits.get(rowIndex);
@@ -398,28 +395,6 @@ public class AddTraitsDialog extends OkCancelDialog {
 	        initialiseGui();
 
 	        filterText.addFilterChangeHandler((s) -> applyFilter(s));
-//	        filterText.getDocument().addDocumentListener(new DocumentListener() {
-//
-//                @Override
-//                public void removeUpdate(DocumentEvent e) {
-//                    applyFilter();
-//                }
-//
-//                @Override
-//                public void insertUpdate(DocumentEvent e) {
-//                    applyFilter();
-//                }
-//
-//                @Override
-//                public void changedUpdate(DocumentEvent e) {
-//                    applyFilter();
-//                }
-//
-//                private void applyFilter() {
-//                    String filter = filterText.getText().trim();
-//                    AddTraitsDialog.this.applyFilter(filter);
-//                }
-//            });
 
 	        getOkAction().setEnabled(false);
 

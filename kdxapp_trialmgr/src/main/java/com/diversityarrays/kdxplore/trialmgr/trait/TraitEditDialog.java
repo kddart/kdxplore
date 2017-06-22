@@ -86,7 +86,6 @@ import com.diversityarrays.kdsmart.db.KDSmartDatabase;
 import com.diversityarrays.kdsmart.db.entities.Trait;
 import com.diversityarrays.kdsmart.db.entities.TraitDataType;
 import com.diversityarrays.kdsmart.db.entities.TraitLevel;
-import com.diversityarrays.kdsmart.field.UnicodeChars;
 import com.diversityarrays.kdxplore.data.KdxploreDatabase;
 import com.diversityarrays.kdxplore.data.kdx.KdxSample;
 import com.diversityarrays.util.Check;
@@ -94,6 +93,7 @@ import com.diversityarrays.util.FilterTextField;
 import com.diversityarrays.util.ImageId;
 import com.diversityarrays.util.KDClientUtils;
 import com.diversityarrays.util.MsgBox;
+import com.diversityarrays.util.UnicodeChars;
 
 import net.pearcan.ui.GuiUtil;
 import net.pearcan.ui.table.BspAbstractTableModel;

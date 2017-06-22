@@ -74,9 +74,11 @@ import com.diversityarrays.daldb.InvalidRuleException;
 import com.diversityarrays.daldb.ValidationRule;
 import com.diversityarrays.kdsmart.db.BatchHandler;
 import com.diversityarrays.kdsmart.db.KDSmartDatabase;
+import com.diversityarrays.kdsmart.db.KDSmartDatabase.WithPlotAttributesOption;
 import com.diversityarrays.kdsmart.db.SampleGroupChoice;
 import com.diversityarrays.kdsmart.db.TrialChangeListener;
 import com.diversityarrays.kdsmart.db.TrialItemVisitor;
+import com.diversityarrays.kdsmart.db.entities.Plot;
 import com.diversityarrays.kdsmart.db.entities.PlotAttribute;
 import com.diversityarrays.kdsmart.db.entities.PlotAttributeValue;
 import com.diversityarrays.kdsmart.db.entities.PlotIdentOption;
@@ -204,7 +206,7 @@ public class TrialViewPanel extends JPanel {
 			}
 		}
 	};
-	
+
 	private final Action exportSamplesAction = new AbstractAction() {
 		@Override
 		public void actionPerformed(ActionEvent e) {
@@ -217,57 +219,82 @@ public class TrialViewPanel extends JPanel {
 			if (trialDataTableHeaderRenderer.columnSelected >= 0) {
 
 				Pair<DeviceIdentifier, SampleGroup> pair = getSelectedDeviceAndSampleGroup(trialData);
-				
+
 				if (pair==null) {
 					// Must be the TraitInstances
-				    MsgBox.info(TrialViewPanel.this, 
+				    MsgBox.info(TrialViewPanel.this,
 				            "Please select a different column heading",
 				            "Export Traits");
 				}
 				else {
 					DeviceIdentifier devid = pair.first;
 					SampleGroup sampleGroup = pair.second;
-					
+
 					String dlgTitle = SampleGroupExportDialog.createTitle(devid.getDeviceType(), trial);
-					
+
 					KdxploreDatabase kdxdb = offlineData.getKdxploreDatabase();
 					Set<Integer> excludeTraitIds = SampleGroupExportDialog.getExcludedTraitIds(TrialViewPanel.this, dlgTitle, kdxdb, sampleGroup);
 
-					if (excludeTraitIds != null) {
-    					SampleGroupExportDialog dlg = new SampleGroupExportDialog(
-    							GuiUtil.getOwnerWindow(TrialViewPanel.this),
-    							dlgTitle,
-    							trial,
-    							kdxdb,
-    							devid.getDeviceType(),
-    							devid, 
-    							sampleGroup,
-    							excludeTraitIds);
-    					dlg.setLocationRelativeTo(trialDataTable);
-    					dlg.setVisible(true);
+					Set<Integer> excludePlotIds = new HashSet<>();
+					List<Plot> plots;
+					try {
+						plots = kdxdb.getPlots(trial, 
+								SampleGroupChoice.create(sampleGroup.getSampleGroupId()), 
+								WithPlotAttributesOption.WITH_PLOT_ATTRIBUTES);
+										
+					excludePlotIds = plots.stream()
+							.filter(p -> ! p.isActivated())
+							.map(p -> p.getPlotId())
+							.collect(Collectors.toSet());
+					
+					} catch (IOException e1) {
+						e1.printStackTrace();
+					}
+
+					Map<Integer, Trait> allTraitIds;
+					try {
+						allTraitIds = kdxdb.getKDXploreKSmartDatabase().getTraitMap();
+
+						if (excludeTraitIds != null) {
+							SampleGroupExportDialog dlg = new SampleGroupExportDialog(
+									GuiUtil.getOwnerWindow(TrialViewPanel.this),
+									dlgTitle,
+									trial,
+									kdxdb,
+									devid.getDeviceType(),
+									devid,
+									sampleGroup,
+									excludeTraitIds,
+									allTraitIds,
+									excludePlotIds);
+							dlg.setLocationRelativeTo(trialDataTable);
+							dlg.setVisible(true);
+						}
+					} catch (IOException e1) {
+						e1.printStackTrace();
 					}
 				}
 			}
 			else {
-			    if (trialData.hasExportableSampleGroups()) {
-			        MsgBox.info(TrialViewPanel.this, 
-			                "Click on a heading to Select", 
+				if (trialData.hasExportableSampleGroups()) {
+			        MsgBox.info(TrialViewPanel.this,
+			                "Click on a heading to Select",
 			                "No Dataset Selected");
 			    }
 			    else {
-	                int answer = JOptionPane.showConfirmDialog(TrialViewPanel.this, 
-	                        "Do you want to create a 'Scoring Set'?", 
-	                        "No Exportable Datasets Exist", 
-	                        JOptionPane.YES_NO_OPTION, 
+	                int answer = JOptionPane.showConfirmDialog(TrialViewPanel.this,
+	                        "Do you want to create a 'Scoring Set'?",
+	                        "No Exportable Datasets Exist",
+	                        JOptionPane.YES_NO_OPTION,
 	                        JOptionPane.QUESTION_MESSAGE);
 	                if (JOptionPane.YES_OPTION == answer) {
 	                    doAddSampleDataset();
 	                }
 			    }
 			}
-		}		
+		}
 	};
-	
+
     private final Action addSampleGroupAction = new AbstractAction("Add") {
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -281,14 +308,14 @@ public class TrialViewPanel extends JPanel {
             doRemoveTraitInstancesWithoutSamples();
         }
     };
-			
+
 	private final Action deleteSamplesAction = new AbstractAction("Del") {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			TableModel model = trialDataTable.getModel();
 			if (model instanceof TrialData) {
 				TrialData trialData = (TrialData) model;
-				
+
 				Pair<DeviceIdentifier, SampleGroup> pair = getSelectedDeviceAndSampleGroup(trialData);
 				SampleGroup sampleGroup = null;
 				boolean scoringSampleGroup = false;
@@ -306,36 +333,37 @@ public class TrialViewPanel extends JPanel {
 
                     default:
                         break;
-				    
+
 				    }
 				}
-				
+
 				if (sampleGroup != null) {
 					DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd@HH:mm");
-					
+
                     StringBuilder sb = new StringBuilder();
 					if (scoringSampleGroup) {
 					    sb.append("Scoring Set:");
 					}
 					else {
 	                    sb.append("Samples from:");
-	                    
+
 					}
+
                     ScoreRatio sr = trialData.getSampleCounts(sampleGroup);
                     sb.append('\n').append(dateFormat.format(sampleGroup.getDateLoaded()))
                         .append(": ")
                         .append(sr.getScored()).append(" / ").append(sr.getTotal());
-                    
+
                     String groupName = sb.toString();
 
-					int answer = JOptionPane.showOptionDialog(TrialViewPanel.this, 
-					        sb, 
-					        "Confirm Sample Removal", 
-					        JOptionPane.YES_NO_OPTION, 
-							JOptionPane.QUESTION_MESSAGE, 
-							null, 
+					int answer = JOptionPane.showOptionDialog(TrialViewPanel.this,
+					        sb,
+					        "Confirm Sample Removal",
+					        JOptionPane.YES_NO_OPTION,
+							JOptionPane.QUESTION_MESSAGE,
+							null,
 							new String[] { "Delete", "Cancel" }, "Cancel");
-					
+
 					if (answer == 0) {
 						try {
 							offlineData.getKdxploreDatabase().removeSampleGroups(sampleGroup);
@@ -351,8 +379,8 @@ public class TrialViewPanel extends JPanel {
 			}
 		}
 	};
-	
-	private Pair<DeviceIdentifier, SampleGroup> getSelectedDeviceAndSampleGroup(TrialData trialData) {		
+
+	private Pair<DeviceIdentifier, SampleGroup> getSelectedDeviceAndSampleGroup(TrialData trialData) {
 		 Pair<DeviceIdentifier, SampleGroup> result = null;
 		if (trialDataTableHeaderRenderer.columnSelected >= 0) {
 			int mcol = trialDataTable.convertColumnIndexToModel(trialDataTableHeaderRenderer.columnSelected);
@@ -365,15 +393,15 @@ public class TrialViewPanel extends JPanel {
 		}
 		return result;
 	}
-	
-	
+
+
 	private void doRemoveTraitInstancesWithoutSamples() {
 	    TableModel model = trialDataTable.getModel();
 	    if (model instanceof TrialData) {
-	        TrialData trialData = (TrialData) model;   
+	        TrialData trialData = (TrialData) model;
 	        TraitNameStyle tns = trialData.trial.getTraitNameStyle();
 
-	           
+
 	        List<Integer> modelRows = GuiUtil.getSelectedModelRows(trialDataTable);
 	        List<TraitInstance> withData = new ArrayList<>();
 	        List<TraitInstance> withoutData = new ArrayList<>();
@@ -382,7 +410,7 @@ public class TrialViewPanel extends JPanel {
 	            TraitInstance ti = trialData.getTraitInstanceAt(row);
 	            int traitId = ti.getTraitId();
 	            int instanceNumber = ti.getInstanceNumber();
-	            
+
 	            boolean[] anyScored = new boolean[1];
 	            BiPredicate<SampleGroup, KdxSample> sampleVisitor = new BiPredicate<SampleGroup, KdxSample>() {
                     @Override
@@ -399,7 +427,7 @@ public class TrialViewPanel extends JPanel {
                             return false;
                         }
                         return true; // keep looking for scored samples
-                    }	                
+                    }
 	            };
 	            trialData.visitSampleGroupSamples(sampleVisitor);
 	            if (anyScored[0]) {
@@ -409,7 +437,7 @@ public class TrialViewPanel extends JPanel {
 	                withoutData.add(ti);
 	            }
 	        }
-	        
+
 	        if (withoutData.isEmpty()) {
 	            if (withData.isEmpty()) {
 	                MsgBox.warn(TrialViewPanel.this, "Nothing to do!", "Remove Trait/Instances");
@@ -423,7 +451,7 @@ public class TrialViewPanel extends JPanel {
 	        else {
                 String s = withoutData.stream().map(ti -> tns.makeTraitInstanceName(ti))
                         .collect(Collectors.joining("</li><li>", "<html><ul><li>", "</li></ul>"));
-	            int answer = JOptionPane.showConfirmDialog(TrialViewPanel.this, 
+	            int answer = JOptionPane.showConfirmDialog(TrialViewPanel.this,
 	                    s,
 	                    "Confirm Trait Instance Removeal",
 	                    JOptionPane.YES_NO_OPTION);
@@ -442,42 +470,30 @@ public class TrialViewPanel extends JPanel {
 	        }
 	    }
 	}
-	
+
 	private void doAddSampleDataset() {
-	    
+
 	    TableModel model = trialDataTable.getModel();
         if (! (model instanceof TrialData)) {
             return;
         }
-	    
+
         TrialData trialData = (TrialData) model;
-	    // Need to choose Traits.
-	    try {
-//            Set<Trait> trialTraits = offlineData.getKdxploreDatabase().getTrialTraits(trial.getTrialId());
-            
-            AddScoringSetDialog dlg = new AddScoringSetDialog(
-                    GuiUtil.getOwnerWindow(TrialViewPanel.this), 
-                    offlineData.getKdxploreDatabase(), 
-                    trial, 
-//                    trialTraits,
-                    trialData.traitInstancesByTrait,
-                    trialData.getCuratedSampleGroup());
-            GuiUtil.centreOnOwner(dlg);
-            dlg.setVisible(true);
-            if (dlg.addedSampleGroup) {
-                setTrial(trial);
-            }
-        }
-//        catch (IOException e) {
-//            MsgBox.error(TrialViewPanel.this, e.getMessage(), "Add Sample Dataset - Database Error");
-//        }
-	    finally {
-	        
-	    }
+        // Need to choose Traits.
+    	AddScoringSetDialog dlg = new AddScoringSetDialog(
+    			GuiUtil.getOwnerWindow(TrialViewPanel.this),
+    			offlineData.getKdxploreDatabase(),
+    			trial,
+    			//	                    trialTraits,
+    			trialData.traitInstancesByTrait,
+    			trialData.getCuratedSampleGroup());
+    	GuiUtil.centreOnOwner(dlg);
+    	dlg.setVisible(true);
+
+    	if (dlg.addedSampleGroup) {
+    		setTrial(trial);
+    	}
     }
-
-
-//	private final BackgroundRunner backgroundRunner;
 
 	private final MessagePrinter messagePrinter;
 
@@ -486,11 +502,11 @@ public class TrialViewPanel extends JPanel {
 	private final TrialPropertiesTableModel trialPropertiesTableModel = new TrialPropertiesTableModel();
 
 	private PropertyChangeConfirmer propertyChangeConfirmer = new PropertyChangeConfirmer() {
-		
+
 		private boolean isForTrialPlantingDate(PropertyDescriptor pd) {
 			Method m = pd.getWriteMethod();
-			return (m != null 
-				&& 
+			return (m != null
+				&&
 				Trial.class.isAssignableFrom(m.getDeclaringClass())
 				&&
 				"setTrialPlantingDate".equals(m.getName()));
@@ -499,24 +515,24 @@ public class TrialViewPanel extends JPanel {
 		@Override
 		public boolean isChangeAllowed(PropertyDescriptor pd) {
 			boolean result = true;
-		
+
 			if (elapsedDaysTraitsValueMinMax != null) {
-				if (isForTrialPlantingDate(pd) 
+				if (isForTrialPlantingDate(pd)
 					&&
 					trial.getTrialPlantingDate() != null)
 				{
 					int answer = JOptionPane.showConfirmDialog(
-							TrialViewPanel.this, 
+							TrialViewPanel.this,
 							"This Trial already contains values for ELAPSED_DAYS Traits\n"
 							+ "\nin the range " + elapsedDaysTraitsValueMinMax.x + " to " + elapsedDaysTraitsValueMinMax.y
 							+ "\n\nDo you really want to change the Planting Date?"
-							, 
-							"Confirm Planting Date Change", 
+							,
+							"Confirm Planting Date Change",
 							JOptionPane.YES_NO_OPTION);
 					result = JOptionPane.YES_OPTION==answer;
 				}
 			}
-					
+
 			return result;
 		}
 
@@ -528,19 +544,19 @@ public class TrialViewPanel extends JPanel {
 
 		@Override
 		public boolean valueChangeCanCommit(PropertyDescriptor pd, Object newValue) {
-			
+
 			boolean result = true;
-			
+
 			if (newValue != null && newValue instanceof java.util.Date && isForTrialPlantingDate(pd)) {
-				
+
 				if (oldValue != null && oldValue instanceof java.util.Date) {
 					java.util.Date newTrialPlantingDate = (java.util.Date) newValue;
 					java.util.Date oldTrialPlantingDate = (java.util.Date) oldValue;
-					
+
 					result = changeElapsedDaysValues(oldTrialPlantingDate, newTrialPlantingDate);
 				}
 			}
-			
+
 			return result;
 		}
 
@@ -565,21 +581,21 @@ public class TrialViewPanel extends JPanel {
 //			return result;
 //		}
 //	};
-	
-	
+
+
 	private final TrialPropertiesTable trialPropertiesTable = new TrialPropertiesTable(trialPropertiesTableModel, propertyChangeConfirmer);
 
 	private final PropertiesTableLegendPanel legendPanel = new PropertiesTableLegendPanel(trialPropertiesTable);
 
 	private final Transformer<Trial,Boolean> checkIfEditorActive;
-	
+
 	private final Consumer<Trial> onTraitInstancesRemoved;
 	public TrialViewPanel(
 	        WindowOpener<JFrame> windowOpener,
 			OfflineData od,
 			Transformer<Trial,Boolean> checkIfEditorActive,
 			Consumer<Trial> onTraitInstancesRemoved,
-			MessagePrinter mp) 
+			MessagePrinter mp)
 	{
 		super(new BorderLayout());
 
@@ -595,12 +611,12 @@ public class TrialViewPanel extends JPanel {
 		if (db != null) {
 			db.addEntityChangeListener(trialChangeListener);
 		}
-		
+
         trialDataTable.setTransferHandler(
                 TableTransferHandler.initialiseForCopySelectAll(trialDataTable, true));
         trialPropertiesTable.setTransferHandler(
                 TableTransferHandler.initialiseForCopySelectAll(trialPropertiesTable, true));
-		
+
 		// Note: Can't use renderers because the TM always returns String.class
 		// for getColumnClass()
 		// trialPropertiesTable.setDefaultRenderer(TrialLayout.class, new
@@ -622,7 +638,7 @@ public class TrialViewPanel extends JPanel {
 				}
 			}
 		});
-		
+
 //		int tnsColumnIndex = -1;
 //		for (int col = trialPropertiesTableModel.getColumnCount(); --col >= 0; ) {
 //			if (TraitNameStyle.class == trialPropertiesTableModel.getColumnClass(col)) {
@@ -654,9 +670,12 @@ public class TrialViewPanel extends JPanel {
 		JPanel main = new JPanel(new BorderLayout());
 		main.add(new JScrollPane(trialPropertiesTable), BorderLayout.CENTER);
 		main.add(legendPanel, BorderLayout.SOUTH);
-		
+
 		JScrollPane trialDataTableScrollPane = new JScrollPane(trialDataTable);
-//		JScrollPane promptScrollPane = new PromptScrollPane(trialDataTable, "No Trial Data");
+
+		// The preferred height of the viewport is determined
+		// by whether or not we need to use hh:mm:ss in the name of any of
+		// the scoring data sets.
 		JViewport viewPort = new JViewport() {
 		      @Override public Dimension getPreferredSize() {
 			        Dimension d = super.getPreferredSize();
@@ -671,7 +690,7 @@ public class TrialViewPanel extends JPanel {
 			      }
 			    };
 		trialDataTableScrollPane.setColumnHeader(viewPort);
-		
+
 		JTableHeader th = trialDataTable.getTableHeader();
 		th.setDefaultRenderer(trialDataTableHeaderRenderer);
 		th.addMouseListener(new MouseAdapter() {
@@ -685,7 +704,7 @@ public class TrialViewPanel extends JPanel {
                 e.consume();
 			}
 		});
-		
+
 		trialDataTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
             @Override
             public void valueChanged(ListSelectionEvent e) {
@@ -713,18 +732,18 @@ public class TrialViewPanel extends JPanel {
 		buttons.add(new JButton(deleteSamplesAction));
 		trialDataPanel.add(GuiUtil.createLabelSeparator("Measurements by Source", buttons), BorderLayout.NORTH);
 		trialDataPanel.add(trialDataTableScrollPane, BorderLayout.CENTER);
-		
+
 		JSplitPane splitPane = new JSplitPane(
-				JSplitPane.VERTICAL_SPLIT, 
-				main, 
+				JSplitPane.VERTICAL_SPLIT,
+				main,
 				trialDataPanel);
 		splitPane.setResizeWeight(0.5);
-		
+
 		add(top, BorderLayout.NORTH);
 		add(splitPane, BorderLayout.CENTER);
-		
+
 		trialDataTable.setDefaultRenderer(Object.class, new TrialDataCellRenderer());
-		
+
 		trialDataTable.addPropertyChangeListener("model", new PropertyChangeListener() {
 			@Override
 			public void propertyChange(PropertyChangeEvent evt) {
@@ -733,40 +752,40 @@ public class TrialViewPanel extends JPanel {
 			}
 		});
 	}
-	
+
 	protected boolean changeElapsedDaysValues(Date oldTrialPlantingDate, Date newTrialPlantingDate) {
-		
+
 		boolean result = true;
-		
+
 		KDSmartDatabase kdsdb = offlineData.getKdxploreDatabase().getKDXploreKSmartDatabase();
-		
+
 		int nDaysDiff = DateDiffChoice.differenceInDays(newTrialPlantingDate, oldTrialPlantingDate);
-		
+
 		BatchHandler<Integer> callable = new BatchHandler<Integer>() {
-			
+
 			int updateCount = 0;
 
 			@Override
 			public Integer call() throws Exception {
 
 				Map<Integer, Trait> traitMap = kdsdb.getTraitMap();
-				
+
 				Map<Integer,ValidationRule> ruleByTraitId = new HashMap<>();
 
 				TrialItemVisitor<Sample> sampleVisitor = new TrialItemVisitor<Sample>() {
 					@Override
 					public void setExpectedItemCount(int count) { }
-					
+
 					@Override
 					public boolean consumeItem(Sample sample) throws IOException {
 						if (sample.hasBeenScored()) {
 							Trait trait = traitMap.get(sample.getTraitId());
-							
+
 							if (trait != null && TraitDataType.ELAPSED_DAYS == trait.getTraitDataType()) {
 								ValidationRule rule = ruleByTraitId.get(sample.getTraitId());
 								if (rule == null) {
 									rule = ValidationRule.NO_VALIDATION_RULE;
-									
+
 									String tvr = trait.getTraitValRule();
 									if (Check.isEmpty(tvr)) {
 										tvr = ValidationRule.CHOICE_ELAPSED_DAYS_NO_LIMIT;
@@ -775,23 +794,23 @@ public class TrialViewPanel extends JPanel {
 										rule = ValidationRule.create(tvr);
 									} catch (InvalidRuleException ignore) {
 									}
-									
+
 									ruleByTraitId.put(sample.getTraitId(), rule);
 								}
-								
+
 								try {
 									int nDays = Integer.parseInt(sample.getTraitValue());
 									int newValue = nDays + nDaysDiff;
-									
+
 									String newTraitValue = Integer.toString(newValue);
 									if (rule != ValidationRule.NO_VALIDATION_RULE) {
 										if (! rule.evaluate(newTraitValue)) {
 											throw new IOException(
-													"new value '" + newTraitValue 
+													"new value '" + newTraitValue
 													+ "' does not validate: " + rule.getDescription());
 										}
 									}
-									
+
 									sample.setTraitValue(newTraitValue);
 									kdsdb.saveSample(sample, false);
 									++updateCount;
@@ -802,13 +821,13 @@ public class TrialViewPanel extends JPanel {
 						return true;
 					}
 				};
-				
+
 				kdsdb.visitSamplesForTrial(
 				        SampleGroupChoice.ANY_SAMPLE_GROUP,
 				        trial.getTrialId(),
-						SampleOrder.ALL_UNORDERED, 
+						SampleOrder.ALL_UNORDERED,
 						sampleVisitor);
-				
+
 				return updateCount;
 			}
 
@@ -819,27 +838,27 @@ public class TrialViewPanel extends JPanel {
 		};
 
 		Either<Exception,Integer> either = kdsdb.doBatch(callable);
-		
+
 		if (! either.isRight()) {
 			Exception err = either.left();
 			JOptionPane.showMessageDialog(TrialViewPanel.this, err.getMessage(),
 					"Unable to change Planting Date", JOptionPane.ERROR_MESSAGE);
 			result = false;
 		}
-		
+
 		return result;
 	}
 
 	private final MyTableCellHeaderRenderer trialDataTableHeaderRenderer = new MyTableCellHeaderRenderer();
 
     private final WindowOpener<JFrame> windowOpener;
-	
+
 	static class MyTableCellHeaderRenderer extends SunSwingDefaultCellHeaderRenderer {
 
 	    static private final int EDGE_LEN = 11;
 
 		protected int columnSelected = -1;
-		
+
 		private boolean hasSubPlotSamples;
 		private static final Polygon MARKER_TRIANGLE;
 		static private final Color SUBPLOT_SAMPLES_COLOR = Color.decode("#00ddFF");
@@ -848,7 +867,7 @@ public class TrialViewPanel extends JPanel {
 	        int npoints = 3;
 	        int[] xpoints = new int[npoints];
 	        int[] ypoints = new int[npoints];
-	        
+
 	        xpoints[0] = -EDGE_LEN;  ypoints[0] = 0;
 	        xpoints[1] = 0;          ypoints[1] = 0;
 	        xpoints[2] = 0;          ypoints[2] = EDGE_LEN;
@@ -857,7 +876,7 @@ public class TrialViewPanel extends JPanel {
 		@Override
 		public Component getTableCellRendererComponent(JTable table,
 				Object value, boolean isSelected, boolean hasFocus, int row,
-				int column) 
+				int column)
 		{
 			super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 			if (column == columnSelected) {
@@ -868,10 +887,10 @@ public class TrialViewPanel extends JPanel {
 				setForeground(table.getForeground());
 				setBackground(table.getBackground());
 			}
-			
+
 			String ttt = null;
 			hasSubPlotSamples = false;
-			
+
 			if (TrialManagerPreferences.getInstance().getShowIfSubplotScoredSamplesExist()) {
 	            TableModel model = table.getModel();
 	            if (model instanceof TrialData) {
@@ -887,7 +906,7 @@ public class TrialViewPanel extends JPanel {
 	                        }
 	                    }
 	                }
-	            }			    
+	            }
 			}
 
 			setToolTipText(ttt);
@@ -897,7 +916,7 @@ public class TrialViewPanel extends JPanel {
         @Override
         public void paintComponent(Graphics g) {
             super.paintComponent(g);
-            
+
             if (hasSubPlotSamples) {
                 Rectangle rect = getBounds();
 
@@ -907,14 +926,14 @@ public class TrialViewPanel extends JPanel {
                 g.translate(-rect.width, 0);
             }
         }
-		
-		
-		
+
+
+
 	}
-	
+
 	private void updateDeleteSamplesAction(boolean shifted, boolean isRightClick) {
 		TableModel model = trialDataTable.getModel();
-		
+
         SampleGroup sampleGroup = null;
 		boolean enableDel = false;
 //		boolean enableExp = false;
@@ -940,16 +959,16 @@ public class TrialViewPanel extends JPanel {
                         break;
                     default:
                         break;
-				    
+
 				    }
 //					enableExp = true;
 				}
 			}
 		}
-		
+
 		deleteSamplesAction.setEnabled(enableDel);
 //		exportSamplesAction.setEnabled(enableExp);
-		
+
 		if (shifted && (sampleGroup != null)) {
 		    String title = createTitleForSampleGroupViewer(sampleGroup);
 		    JFrame frame = windowOpener.getWindowByIdentifier(title);
@@ -965,20 +984,20 @@ public class TrialViewPanel extends JPanel {
 		    }
 		}
 	}
-	
+
 	private String createTitleForSampleGroupViewer(SampleGroup sampleGroup) {
         StringBuilder sb = new StringBuilder(trial.getTrialName());
         sb.append(": ");
         Integer id = sampleGroup.getDeviceIdentifierId();
-        
+
         DeviceIdentifier devid = null;
         try {
-             devid = offlineData.getKdxploreDatabase().getDeviceIdentifierMap().get(id);            
+             devid = offlineData.getKdxploreDatabase().getDeviceIdentifierMap().get(id);
         }
         catch (IOException e) {
             Shared.Log.w("TrialViewPanel", "createTitleForSampleGroupViewer", e);
         }
-        
+
         if (devid == null) {
             sb.append(sampleGroup.getStoreIdentifier());
         }
@@ -994,7 +1013,7 @@ public class TrialViewPanel extends JPanel {
         return sb.toString();
 	}
 //	private final MultiLineHeaderRenderer headerRenderer = new MultiLineHeaderRenderer();
-	
+
 	private final JTable trialDataTable = new JTable();
 
 	public void setTrial(Trial t) {
@@ -1016,13 +1035,13 @@ public class TrialViewPanel extends JPanel {
 				KdxploreDatabase kdxdb = offlineData.getKdxploreDatabase();
 				List<TrialAttribute> trialAttributes = kdxdb.getTrialAttributes(
 								trial.getTrialId());
-				
+
 				final Map<Integer,PlotAttribute> paById = new HashMap<>();
 				final Map<PlotAttribute,Set<String>> paValuesByPa = new TreeMap<>();
 				TrialItemVisitor<PlotAttribute> visitor = new TrialItemVisitor<PlotAttribute>() {
 					@Override
 					public void setExpectedItemCount(int count) {
-					}					
+					}
 					@Override
 					public boolean consumeItem(PlotAttribute pa) throws IOException {
 						paById.put(pa.getPlotAttributeId(), pa);
@@ -1031,11 +1050,11 @@ public class TrialViewPanel extends JPanel {
 					}
 				};
 				KDSmartDatabase kdsmartDatabase = kdxdb.getKDXploreKSmartDatabase();
-				
+
 				int trialId = this.trial.getTrialId();
 
 				kdsmartDatabase.visitPlotAttributesForTrial(trialId, visitor);
-				
+
 				TrialItemVisitor<PlotAttributeValue> pavVisitor = new TrialItemVisitor<PlotAttributeValue>() {
 					@Override
 					public void setExpectedItemCount(int count) {
@@ -1056,12 +1075,12 @@ public class TrialViewPanel extends JPanel {
 					}
 				};
 				kdsmartDatabase.visitPlotAttributeValuesForTrial(trialId, pavVisitor);
-	
+
 				elapsedDaysTraitsValueMinMax = findElapsedDaysTraitsValueMinMax(kdxdb, kdsmartDatabase, trialId);
-				
+
 				trialPropertiesTableModel.setData(trial, trialAttributes, paValuesByPa);
 				trialPropertiesTableModel.setPlotCount(kdxdb.getPlotCount(trialId));
-				
+
 				TrialData trialData = kdxdb.getTrialData(trial);
 				trialDataTable.setModel(trialData);
 			} catch (IOException e) {
@@ -1073,37 +1092,37 @@ public class TrialViewPanel extends JPanel {
 			}
 		}
 	}
-	
-	public void updateIfSameTrial(int trialId) {		
+
+	public void updateIfSameTrial(int trialId) {
 		if (this.trial!=null && this.trial.getTrialId() == trialId) {
 		    setCurrentTrialDetails(trial, true);
 //			KdxploreDatabase kdxdb = offlineData.getKdxploreDatabase();
-//			
+//
 //			try {
-//			    elapsedDaysTraitsValueMinMax = findElapsedDaysTraitsValueMinMax(kdxdb, 
+//			    elapsedDaysTraitsValueMinMax = findElapsedDaysTraitsValueMinMax(kdxdb,
 //						kdxdb.getKDXploreKSmartDatabase(),
 //						trialId);
 //				TrialData trialData = kdxdb.getTrialData(trial);
 //				trialDataTable.setModel(trialData);
 //			} catch (IOException e) {
 //				GuiUtil.errorMessage(TrialViewPanel.this,
-//						"Error Refreshing Trial Sample details", 
+//						"Error Refreshing Trial Sample details",
 //						e.getMessage());
 //			}
 		}
 	}
 
 	private Point findElapsedDaysTraitsValueMinMax(
-			KdxploreDatabase kdxdb, 
-			KDSmartDatabase kdsmartDatabase, 
-			int trialId) 
+			KdxploreDatabase kdxdb,
+			KDSmartDatabase kdsmartDatabase,
+			int trialId)
 	throws IOException
 	{
 		Set<Integer> databaseDeviceIdentifierIds = new HashSet<>();
 		int editedDevId = -1;
-		
+
 		Map<Integer,DeviceIdentifier> deviceIdentifierById = new HashMap<>();
-		
+
 		for (DeviceIdentifier devid : kdxdb.getDeviceIdentifiers()) {
 			deviceIdentifierById.put(devid.getDeviceIdentifierId(), devid);
 
@@ -1124,15 +1143,15 @@ public class TrialViewPanel extends JPanel {
 				break;
 			}
 		}
-		
+
 //		boolean foundDb = false;
 //		boolean foundEd = false;
 //		Bag<String> deviceNames = new HashBag<>();
-	
+
 		Map<Integer, Trait> traitMap = kdsmartDatabase.getTraitMap();
-		
+
 		Map<SampleGroup,Long> sampleGroupCounts = kdxdb.getSampleGroupCounts(trialId);
-		
+
 		Integer[] minMax = new Integer[2];
 		for (SampleGroup sg : sampleGroupCounts.keySet()) {
 //			long count = sampleGroupCounts.get(sg);
@@ -1149,11 +1168,11 @@ public class TrialViewPanel extends JPanel {
 //				}
 //			}
 
-			
-			TrialItemVisitor<Sample> sampleVisitor = new TrialItemVisitor<Sample>() {						
+
+			TrialItemVisitor<Sample> sampleVisitor = new TrialItemVisitor<Sample>() {
 				@Override
 				public void setExpectedItemCount(int count) { }
-				
+
 				@Override
 				public boolean consumeItem(Sample sample) throws IOException {
 					if (sample.hasBeenScored()) {
@@ -1179,17 +1198,17 @@ public class TrialViewPanel extends JPanel {
 			};
 			kdsmartDatabase.visitSamplesForTrial(
 			        SampleGroupChoice.create(sg.getSampleGroupId()),
-                    trialId, 
-			        SampleOrder.ALL_UNORDERED, 
+                    trialId,
+			        SampleOrder.ALL_UNORDERED,
 					sampleVisitor);
 		}
-		
+
 		Point result = null;
 		if (minMax[0] != null) {
 			result = new Point(minMax[0], minMax[1]);
 		}
 		return result;
-		
+
 //		StringBuilder samplesFor = new StringBuilder();
 //		String sep = "";
 //		if (foundDb) {
@@ -1223,7 +1242,7 @@ public class TrialViewPanel extends JPanel {
 //		if (samplesFor.length() <= 0) {
 //			samplesFor.append("-No Samples-");
 //		}
-//	
+//
 //		return samplesFor.toString();
 	}
 
@@ -1231,28 +1250,28 @@ public class TrialViewPanel extends JPanel {
 
 		public TrialPropertiesTable(EntityPropertiesTableModel<Trial> tm, EntityPropertiesTable.PropertyChangeConfirmer pcc) {
 			super(tm, pcc);
-			
+
 			setDefaultRenderer(Object.class, new GenericTrialPropertyRenderer());
 		}
 
 		@Override
 		protected boolean handleEditCellAt(EntityPropertiesTableModel<Trial> eptm, int row, int column) {
-			
+
 			TrialPropertiesTableModel tptm = (TrialPropertiesTableModel) eptm;
 
 			PropertyDescriptor pd = tptm.getPropertyDescriptor(row);
-			
+
 			Class<?> propertyClass = pd.getPropertyType();
 
 			Trial trial = tptm.getTrial();
-			
+
 			if (checkIfEditorActive.transform(trial)) {
-				MsgBox.warn(TrialViewPanel.this, 
-						"Trial '" + trial.getTrialName() + "' is being curated", 
+				MsgBox.warn(TrialViewPanel.this,
+						"Trial '" + trial.getTrialName() + "' is being curated",
 						"Can't Edit " + pd.getDisplayName());
 				return true;
 			}
-			
+
 			if (TrialLayout.class == propertyClass) {
 				TrialLayoutEditorDialog tle = new TrialLayoutEditorDialog(
 						GuiUtil.getOwnerWindow(this),
@@ -1269,19 +1288,19 @@ public class TrialViewPanel extends JPanel {
                     }
                     catch (IOException e) {
                         trial.setTrialLayout(old);
-                        MsgBox.warn(TrialViewPanel.this, e.getMessage(), 
+                        MsgBox.warn(TrialViewPanel.this, e.getMessage(),
                                 "Unable to save change to Trial Layout");
                     }
 				}
 				return true;
 			}
-			
+
 			if (PlotIdentOption.class == propertyClass) {
 				PlotIdentSummary pis = trial.getPlotIdentSummary();
 				if (! pis.hasXandY() && pis.plotIdentRange.isEmpty()) {
-					JOptionPane.showMessageDialog(this, 
-							"No Plot Data", 
-							pd.getDisplayName(), 
+					JOptionPane.showMessageDialog(this,
+							"No Plot Data",
+							pd.getDisplayName(),
 							JOptionPane.WARNING_MESSAGE);
 					return true;
 				}
@@ -1308,13 +1327,13 @@ public class TrialViewPanel extends JPanel {
 //		    setFont(table.getFont());
 //		    String str = (value == null) ? "" : value.toString();
 //		    String[] lines = str.split("\n");
-//		    
+//
 //		    Vector v = new Vector();
 //		    Collections.addAll(v, lines);
 //		    setListData(v);
 //		    return this;
 //		  }
 //		}
-	
+
 
 }

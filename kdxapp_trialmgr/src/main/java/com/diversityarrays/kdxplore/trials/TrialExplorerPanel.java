@@ -102,6 +102,7 @@ import com.diversityarrays.kdxplore.data.DeleteTrialException;
 import com.diversityarrays.kdxplore.data.KdxploreDatabase;
 import com.diversityarrays.kdxplore.data.OfflineData;
 import com.diversityarrays.kdxplore.data.OfflineDataChangeListener;
+import com.diversityarrays.kdxplore.data.KdxploreDatabase.WithSamplesOption;
 import com.diversityarrays.kdxplore.data.jdbc.KdxploreConfigException;
 import com.diversityarrays.kdxplore.data.kdx.DeviceIdentifier;
 import com.diversityarrays.kdxplore.data.kdx.KdxSample;
@@ -1276,6 +1277,19 @@ public class TrialExplorerPanel extends JPanel {
         public void saveDeviceIdentifier(DeviceIdentifier deviceIdentifier) throws IOException {
             offlineData.getKdxploreDatabase().saveDeviceIdentifier(deviceIdentifier);
         }
+        
+		@Override
+		public List<SampleGroup> getSampleGroups(Trial trial, WithSamplesOption withSamples) {
+			try {
+				if (offlineData != null && offlineData.getKdxploreDatabase() != null && trial != null) {
+					return offlineData.getKdxploreDatabase().getSampleGroups(trial.getTrialId(), withSamples);
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			
+			return null;
+		}
     };
 
     private final Closure<List<Trial>> onTrialsLoaded = new Closure<List<Trial>>() {

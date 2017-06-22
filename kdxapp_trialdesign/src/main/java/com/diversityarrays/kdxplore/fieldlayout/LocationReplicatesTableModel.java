@@ -1,17 +1,17 @@
 /*
     KDXplore provides KDDart Data Exploration and Management
     Copyright (C) 2015,2016,2017  Diversity Arrays Technology, Pty Ltd.
-    
+
     KDXplore may be redistributed and may be modified under the terms
     of the GNU General Public License as published by the Free Software
     Foundation, either version 3 of the License, or (at your option)
     any later version.
-    
+
     KDXplore is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
-    
+
     You should have received a copy of the GNU General Public License
     along with KDXplore.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -269,46 +269,9 @@ public class LocationReplicatesTableModel extends AbstractTableModel {
     @Override
     public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
 
-        SiteLocation location;
-        switch (columnIndex) {
-        case 0: return;
-        case 1:
-            // update Width
-            if (aValue instanceof Integer) {
-                int width = (Integer) aValue;
-                if (width <= 0) {
-                    return;
-                }
-                location = locations.get(rowIndex);
-                if (width != location.widthInCells) {
-                    Dimension d = new Dimension(width, location.heightInCells);
-                    SiteLocation newLoc = location.copy(location, location.name, d,
-                            location.isSizeEditable(),
-                            location.widthInMetres, location.heightInMetres);
-                    locations.set(rowIndex, newLoc);
-                    onLocationChanged.accept(newLoc);
-                }
-            }
-            return;
-        case 2:
-            // update Height
-            if (aValue instanceof Integer) {
-                int height = (Integer) aValue;
-                if (height <= 0) {
-                    return;
-                }
-                location = locations.get(rowIndex);
-                if (height != location.heightInCells) {
-                    Dimension d = new Dimension(location.widthInCells, height);
-                    SiteLocation newLoc = location.copy(location, location.name, d,
-                            location.isSizeEditable(),
-                            location.widthInMetres, location.heightInMetres);
-                    locations.set(rowIndex, newLoc);
-                    onLocationChanged.accept(newLoc);
-                }
-            }
-            return;
-        }
+    	if (columnIndex < N_NON_REPLICATE_COLUMNS) {
+    		return;
+    	}
 
         if (! (aValue instanceof Boolean)) {
             return;
@@ -316,7 +279,7 @@ public class LocationReplicatesTableModel extends AbstractTableModel {
 
         int replicate = columnIndexToReplicate(columnIndex);
         // make sure we have an Object
-        location = locations.get(rowIndex);
+        SiteLocation location = locations.get(rowIndex);
 
         boolean changed = false;
         if ((Boolean) aValue) {
