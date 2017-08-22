@@ -1,0 +1,42 @@
+{
+  "algorithmName": "Youden",
+  "pluginName": "kdcp_standalone_trialDesignYouden",
+  "versionCode": 6,
+  "versionString": "1.0",
+  "author": "Andrew Kowalczyk",
+  "description": "Single environment Trial Design. Aligns nrep sets of treatments in a row-wise alignment, each treatment been replicated nrep times.",
+  "legacy": false,
+  "knobs": [
+    {
+      "knobName": "TREATMENTFILE",
+      "description": "Treatment File",
+      "required": true,
+      "knobDataType": "FILE_UPLOAD",
+      "defaultValue": "",
+      "validationRule": "",
+      "tooltip": "Treatment FIle in format:\nA\nB\nC\nD\nE\n..."
+    },
+    {
+      "knobName": "NREP",
+      "description": "Treatment Replications",
+      "required": true,
+      "knobDataType": "INTEGER",
+      "defaultValue": "",
+      "validationRule": "(1..)",
+      "tooltip": ""
+    },
+    {
+      "knobName": "RNS",
+      "description": "Random Number Seed",
+      "required": false,
+      "knobDataType": "INTEGER",
+      "defaultValue": "0",
+      "validationRule": "(0..)",
+      "tooltip": "Random number seed "
+    }
+  ],
+  "inputDataSets": [],
+  "scriptTemplateFilename": "script.sh.tmpl",
+  "htmlHelp": "english.html",
+  "whenLastUpdated": "Dec 20, 2016 7:22:42 PM"
+}

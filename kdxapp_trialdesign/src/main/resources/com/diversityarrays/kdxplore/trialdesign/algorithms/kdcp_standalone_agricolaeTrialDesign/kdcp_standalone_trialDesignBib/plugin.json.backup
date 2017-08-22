@@ -1,0 +1,60 @@
+{
+  "algorithmName": "Trial Design: Balanced Incomplete Block",
+  "pluginName": "kdcp_standalone_trialDesignBib",
+  "versionCode": 8,
+  "versionString": "1.0",
+  "author": "Andrew Kowalczyk",
+  "description": "Multi Environment (Blocks) Trial Design. \nBalanced Incomplete Block provides a Trial Design when the number of treatments is larger than the block size.",
+  "legacy": false,
+  "knobs": [
+    {
+      "knobName": "treatmentfile",
+      "description": "Treatment File",
+      "required": true,
+      "knobDataType": "FILE_UPLOAD",
+      "defaultValue": "",
+      "validationRule": "",
+      "tooltip": ""
+    },
+    {
+      "knobName": "NUMROWS",
+      "description": "Number of rows:",
+      "required": true,
+      "knobDataType": "INTEGER",
+      "defaultValue": "",
+      "validationRule": "(1..)",
+      "tooltip": ""
+    },
+    {
+      "knobName": "NUMCOLS",
+      "description": "Number of columns",
+      "required": true,
+      "knobDataType": "INTEGER",
+      "defaultValue": "",
+      "validationRule": "(1..)",
+      "tooltip": ""
+    },
+    {
+      "knobName": "SIZEOFBLOCK",
+      "description": "Size of block",
+      "required": true,
+      "knobDataType": "INTEGER",
+      "defaultValue": "",
+      "validationRule": "(1..)",
+      "tooltip": ""
+    },
+    {
+      "knobName": "rns",
+      "description": "Random Number Seed",
+      "required": false,
+      "knobDataType": "INTEGER",
+      "defaultValue": "",
+      "validationRule": "(1..)",
+      "tooltip": ""
+    }
+  ],
+  "inputDataSets": [],
+  "scriptTemplateFilename": "script.sh.tmpl",
+  "htmlHelp": "english.html",
+  "whenLastUpdated": "Oct 25, 2016 3:44:50 PM"
+}

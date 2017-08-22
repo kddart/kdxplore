@@ -1,0 +1,69 @@
+{
+  "algorithmName": "Trial Design: Alpha Lattice",
+  "pluginName": "kdcp_standalone_trialDesignAlpha",
+  "versionCode": 10,
+  "versionString": "1.0",
+  "author": "Andrew Kowalczyk",
+  "description": "Multi-Environment(Blocks) Trial Design. Alpha is used for designs when the block size is a factor of the number of treatments. Alpha will generate a Trial Design with treatments assigned accross blocks, the count of which is determined as the number of treatments divided by the block size, multiplied by a replication value.",
+  "legacy": false,
+  "knobs": [
+    {
+      "knobName": "treatmentfile",
+      "description": "Treatment File",
+      "required": true,
+      "knobDataType": "FILE_UPLOAD",
+      "defaultValue": "",
+      "validationRule": "",
+      "tooltip": ""
+    },
+    {
+      "knobName": "NUMROWS",
+      "description": "Number of rows:",
+      "required": true,
+      "knobDataType": "INTEGER",
+      "defaultValue": "",
+      "validationRule": "(1..)",
+      "tooltip": ""
+    },
+    {
+      "knobName": "NUMCOLS",
+      "description": "Number of columns",
+      "required": true,
+      "knobDataType": "INTEGER",
+      "defaultValue": "",
+      "validationRule": "(1..)",
+      "tooltip": ""
+    },
+    {
+      "knobName": "SIZEOFBLOCK",
+      "description": "Size of block",
+      "required": true,
+      "knobDataType": "INTEGER",
+      "defaultValue": "",
+      "validationRule": "(1..)",
+      "tooltip": ""
+    },
+    {
+      "knobName": "NREP",
+      "description": "Number of reps",
+      "required": true,
+      "knobDataType": "INTEGER",
+      "defaultValue": "",
+      "validationRule": "(1..)",
+      "tooltip": ""
+    },
+    {
+      "knobName": "rns",
+      "description": "Random Number Seed",
+      "required": false,
+      "knobDataType": "INTEGER",
+      "defaultValue": "",
+      "validationRule": "(1..)",
+      "tooltip": ""
+    }
+  ],
+  "inputDataSets": [],
+  "scriptTemplateFilename": "script.sh.tmpl",
+  "htmlHelp": "english.html",
+  "whenLastUpdated": "Dec 6, 2016 10:23:06 PM"
+}

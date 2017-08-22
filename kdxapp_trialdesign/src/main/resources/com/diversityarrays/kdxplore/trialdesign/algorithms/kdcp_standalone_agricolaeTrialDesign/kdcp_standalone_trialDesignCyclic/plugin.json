@@ -1,0 +1,69 @@
+{
+  "algorithmName": "Cyclic Lattice",
+  "pluginName": "kdcp_standalone_trialDesignCyclic",
+  "versionCode": 7,
+  "versionString": "1.0",
+  "author": "Andrew Kowalczyk",
+  "description": "The cyclic design is a incomplete blocks designs, it is generated from a incomplete block initial of the size k, the plan is generated and randomized. The efficient and robust cyclic designs for 6 to 30 treatments, replications \u003c\u003d 10.",
+  "legacy": false,
+  "knobs": [
+    {
+      "knobName": "TREATMENTFILE",
+      "description": "Treatment File",
+      "required": true,
+      "knobDataType": "FILE_UPLOAD",
+      "defaultValue": "",
+      "validationRule": "",
+      "tooltip": ""
+    },
+    {
+      "knobName": "NUMROWS",
+      "description": "Number of rows:",
+      "required": true,
+      "knobDataType": "INTEGER",
+      "defaultValue": "",
+      "validationRule": "(1..)",
+      "tooltip": ""
+    },
+    {
+      "knobName": "NUMCOLS",
+      "description": "Number of columns",
+      "required": true,
+      "knobDataType": "INTEGER",
+      "defaultValue": "",
+      "validationRule": "(1..)",
+      "tooltip": ""
+    },
+    {
+      "knobName": "SIZEOFBLOCK",
+      "description": "Size of block",
+      "required": true,
+      "knobDataType": "INTEGER",
+      "defaultValue": "",
+      "validationRule": "(1..)",
+      "tooltip": ""
+    },
+    {
+      "knobName": "NREP",
+      "description": "Treatment Replications",
+      "required": true,
+      "knobDataType": "INTEGER",
+      "defaultValue": "",
+      "validationRule": "(1..)",
+      "tooltip": ""
+    },
+    {
+      "knobName": "rns",
+      "description": "Random Number Seed",
+      "required": false,
+      "knobDataType": "INTEGER",
+      "defaultValue": "",
+      "validationRule": "(1..)",
+      "tooltip": "Random number seed"
+    }
+  ],
+  "inputDataSets": [],
+  "scriptTemplateFilename": "script.sh.tmpl",
+  "htmlHelp": "help/english.html",
+  "whenLastUpdated": "Dec 20, 2016 7:24:22 PM"
+}

@@ -1,0 +1,60 @@
+{
+  "algorithmName": "Lattice",
+  "pluginName": "kdcp_standalone_trialDesignLattice",
+  "versionCode": 5,
+  "versionString": "1.0",
+  "author": "Andrew Kowalczyk",
+  "description": "Multi-environment(Block) Trial Design. Lattice requires the treatments to be of a perfect square; for example 9, 16, 25, 36, 49. Lattice arranges treatments accross sqrt(n_treatments) * nrep blocks.",
+  "legacy": false,
+  "knobs": [
+    {
+      "knobName": "TREATMENTFILE",
+      "description": "Treatment File",
+      "required": true,
+      "knobDataType": "FILE_UPLOAD",
+      "defaultValue": "",
+      "validationRule": "",
+      "tooltip": "A csv with a single column, each row containing a treatment name.\nA\nB\nC\nD\n..."
+    },
+    {
+      "knobName": "NUMROWS",
+      "description": "Number of Rows",
+      "required": true,
+      "knobDataType": "INTEGER",
+      "defaultValue": "",
+      "validationRule": "(1..)",
+      "tooltip": ""
+    },
+    {
+      "knobName": "NUMCOLS",
+      "description": "Number of Columns",
+      "required": true,
+      "knobDataType": "INTEGER",
+      "defaultValue": "",
+      "validationRule": "(1..)",
+      "tooltip": ""
+    },
+    {
+      "knobName": "NREP",
+      "description": "Treatment Replications",
+      "required": true,
+      "knobDataType": "INTEGER",
+      "defaultValue": "",
+      "validationRule": "(1..)",
+      "tooltip": ""
+    },
+    {
+      "knobName": "RNS",
+      "description": "Random Number Seed",
+      "required": false,
+      "knobDataType": "INTEGER",
+      "defaultValue": "0",
+      "validationRule": "(0..)",
+      "tooltip": "Random number seed"
+    }
+  ],
+  "inputDataSets": [],
+  "scriptTemplateFilename": "script.sh.tmpl",
+  "htmlHelp": "english.html",
+  "whenLastUpdated": "Dec 20, 2016 7:23:13 PM"
+}

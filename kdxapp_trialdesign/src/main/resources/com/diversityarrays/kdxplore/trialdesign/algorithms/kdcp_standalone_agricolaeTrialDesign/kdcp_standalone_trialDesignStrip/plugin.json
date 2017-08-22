@@ -1,0 +1,42 @@
+{
+  "algorithmName": "Strip",
+  "pluginName": "kdcp_standalone_trialDesignStrip",
+  "versionCode": 6,
+  "versionString": "1.0",
+  "author": "Andrew Kowalczyk",
+  "description": "Multi-environment, bi-group treatments Trial Design. 2 groups of treatments are provided, with equal count of treatments.",
+  "legacy": false,
+  "knobs": [
+    {
+      "knobName": "PAIREDTREATMENTFILE",
+      "description": "Bi Group Treatment File",
+      "required": true,
+      "knobDataType": "FILE_UPLOAD",
+      "defaultValue": "",
+      "validationRule": "",
+      "tooltip": "Treatment FIle in format:\nA,z\nB,y \nC,x\nD,w\nE,v\n..."
+    },
+    {
+      "knobName": "NREP",
+      "description": "Treatment Replications",
+      "required": true,
+      "knobDataType": "INTEGER",
+      "defaultValue": "",
+      "validationRule": "(1..)",
+      "tooltip": ""
+    },
+    {
+      "knobName": "RNS",
+      "description": "Random Number Seed",
+      "required": false,
+      "knobDataType": "INTEGER",
+      "defaultValue": "0",
+      "validationRule": "(0..)",
+      "tooltip": "Random number seed "
+    }
+  ],
+  "inputDataSets": [],
+  "scriptTemplateFilename": "script.sh.tmpl",
+  "htmlHelp": "help/english.html",
+  "whenLastUpdated": "Dec 20, 2016 7:22:28 PM"
+}

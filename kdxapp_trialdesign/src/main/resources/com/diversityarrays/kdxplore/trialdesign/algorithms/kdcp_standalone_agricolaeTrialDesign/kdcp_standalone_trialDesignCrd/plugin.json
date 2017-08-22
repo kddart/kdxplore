@@ -1,0 +1,51 @@
+{
+  "algorithmName": "Completely randomized design",
+  "pluginName": "kdcp_standalone_trialDesignCrd",
+  "versionCode": 7,
+  "versionString": "1.0",
+  "author": "Andrew Kowalczyk",
+  "description": "Randomly places treatments, each with a specified number of replications, into a single plot. The sum of replications must be less then the area of the plot, i.e. cols * rows.",
+  "legacy": false,
+  "knobs": [
+    {
+      "knobName": "TREATMENTFILE",
+      "description": "Treatment File",
+      "required": true,
+      "knobDataType": "FILE_UPLOAD",
+      "defaultValue": "",
+      "validationRule": "",
+      "tooltip": "Treatment file in csv format with first column identifying treatment and second identifying number of replications: e.g.\nA,2\nB,2\nC,3"
+    },
+    {
+      "knobName": "NUMROWS",
+      "description": "Number of rows:",
+      "required": true,
+      "knobDataType": "INTEGER",
+      "defaultValue": "",
+      "validationRule": "(1..)",
+      "tooltip": ""
+    },
+    {
+      "knobName": "NUMCOLS",
+      "description": "Number of columns",
+      "required": true,
+      "knobDataType": "INTEGER",
+      "defaultValue": "",
+      "validationRule": "(1..)",
+      "tooltip": ""
+    },
+    {
+      "knobName": "rns",
+      "description": "Random Number Seed",
+      "required": false,
+      "knobDataType": "INTEGER",
+      "defaultValue": "",
+      "validationRule": "(1..)",
+      "tooltip": "Random number seed"
+    }
+  ],
+  "inputDataSets": [],
+  "scriptTemplateFilename": "script.sh.tmpl",
+  "htmlHelp": "help/english.html",
+  "whenLastUpdated": "Dec 15, 2016 7:14:53 PM"
+}

@@ -1,0 +1,69 @@
+{
+  "algorithmName": "Augmented block designs",
+  "pluginName": "kdcp_standalone_trialDesignDau",
+  "versionCode": 8,
+  "versionString": "1.0",
+  "author": "Andrew Kowalczyk",
+  "description": "In these designs, some treatments (checks) are replicate r times and other treatments (new) are replicated once.",
+  "legacy": false,
+  "knobs": [
+    {
+      "knobName": "CHECKSTREATMENTFILE",
+      "description": "Checks Treatment File",
+      "required": true,
+      "knobDataType": "FILE_UPLOAD",
+      "defaultValue": "",
+      "validationRule": "",
+      "tooltip": "Treatments which are replicated nrep times"
+    },
+    {
+      "knobName": "NEWTREATMENTFILE",
+      "description": "New Treatment File",
+      "required": true,
+      "knobDataType": "FILE_UPLOAD",
+      "defaultValue": "",
+      "validationRule": "",
+      "tooltip": "New Treatments with no replication (Singles)"
+    },
+    {
+      "knobName": "NUMROWS",
+      "description": "Number of rows:",
+      "required": true,
+      "knobDataType": "INTEGER",
+      "defaultValue": "",
+      "validationRule": "(1..)",
+      "tooltip": ""
+    },
+    {
+      "knobName": "NUMCOLS",
+      "description": "Number of columns",
+      "required": true,
+      "knobDataType": "INTEGER",
+      "defaultValue": "",
+      "validationRule": "(1..)",
+      "tooltip": ""
+    },
+    {
+      "knobName": "NREP",
+      "description": "Treatment replications (Checks)",
+      "required": true,
+      "knobDataType": "INTEGER",
+      "defaultValue": "",
+      "validationRule": "(1..)",
+      "tooltip": "Applies only to treatments in Checks Treatment File"
+    },
+    {
+      "knobName": "rns",
+      "description": "Random Number Seed",
+      "required": false,
+      "knobDataType": "INTEGER",
+      "defaultValue": "",
+      "validationRule": "(0..)",
+      "tooltip": "Random number seed"
+    }
+  ],
+  "inputDataSets": [],
+  "scriptTemplateFilename": "script.sh.tmpl",
+  "htmlHelp": "english.html",
+  "whenLastUpdated": "Dec 20, 2016 7:24:05 PM"
+}

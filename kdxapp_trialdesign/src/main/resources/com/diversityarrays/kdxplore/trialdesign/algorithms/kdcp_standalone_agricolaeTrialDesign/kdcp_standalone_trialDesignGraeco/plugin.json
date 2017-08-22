@@ -1,0 +1,33 @@
+{
+  "algorithmName": "Graeco-Latin",
+  "pluginName": "kdcp_standalone_trialDesignGraeco",
+  "versionCode": 7,
+  "versionString": "1.0",
+  "author": "Andrew Kowalczyk",
+  "description": "An  N x N Graeco-Latin Square involves two sets of N elements.The first are traditionally represented by letters of the Latin alphabet,and the second by letters of the Greek, hence the name. Here I will use capital letters for the Latin, and lower-case Latin letters for the Greek. The task now is to put one Latin and one Greek letter in each box, so that no two pairs are the same (equivalently, so that all N2 possible pairs appear in the array), and such that in each row, and in each column, all the 2N elements are different.",
+  "legacy": false,
+  "knobs": [
+    {
+      "knobName": "TREATMENTFILE",
+      "description": "Treatment File",
+      "required": true,
+      "knobDataType": "FILE_UPLOAD",
+      "defaultValue": "",
+      "validationRule": "",
+      "tooltip": "Treatment file in csv format with first column listing treatments in group 1, second column listing treatments in group 2. Must be equal number of treatments between the groups.\nA,1\nB,2\nC,3"
+    },
+    {
+      "knobName": "rns",
+      "description": "Random Number Seed",
+      "required": false,
+      "knobDataType": "INTEGER",
+      "defaultValue": "",
+      "validationRule": "(0..)",
+      "tooltip": "Random number seed"
+    }
+  ],
+  "inputDataSets": [],
+  "scriptTemplateFilename": "script.sh.tmpl",
+  "htmlHelp": "english.html",
+  "whenLastUpdated": "Dec 15, 2016 7:14:43 PM"
+}

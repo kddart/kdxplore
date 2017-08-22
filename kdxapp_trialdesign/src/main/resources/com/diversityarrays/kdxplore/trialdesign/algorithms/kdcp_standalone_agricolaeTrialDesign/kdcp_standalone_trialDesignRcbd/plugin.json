@@ -1,0 +1,60 @@
+{
+  "algorithmName": "Completely Randomized Block Design",
+  "pluginName": "kdcp_standalone_trialDesignRcbd",
+  "versionCode": 6,
+  "versionString": "1.0",
+  "author": "Andrew Kowalczyk",
+  "description": "Multi-environment Trial Design. Each treatment is assigned once per block.",
+  "legacy": false,
+  "knobs": [
+    {
+      "knobName": "TREATMENTFILE",
+      "description": "Treatment File",
+      "required": true,
+      "knobDataType": "FILE_UPLOAD",
+      "defaultValue": "",
+      "validationRule": "",
+      "tooltip": "Treatment file containing a single column, each row the name of a treatment:\nA\nB\nC\nD\n..."
+    },
+    {
+      "knobName": "NUMROWS",
+      "description": "Number of Rows",
+      "required": true,
+      "knobDataType": "INTEGER",
+      "defaultValue": "",
+      "validationRule": "(1..)",
+      "tooltip": ""
+    },
+    {
+      "knobName": "NUMCOLS",
+      "description": "Number of Columns",
+      "required": true,
+      "knobDataType": "INTEGER",
+      "defaultValue": "",
+      "validationRule": "(1..)",
+      "tooltip": ""
+    },
+    {
+      "knobName": "NUMBLOCKS",
+      "description": "Number of Blocks",
+      "required": true,
+      "knobDataType": "INTEGER",
+      "defaultValue": "",
+      "validationRule": "(1..)",
+      "tooltip": ""
+    },
+    {
+      "knobName": "RNS",
+      "description": "Random Number Seed",
+      "required": false,
+      "knobDataType": "INTEGER",
+      "defaultValue": "0",
+      "validationRule": "(0..)",
+      "tooltip": "Random number seed"
+    }
+  ],
+  "inputDataSets": [],
+  "scriptTemplateFilename": "script.sh.tmpl",
+  "htmlHelp": "help/english.html",
+  "whenLastUpdated": "Dec 15, 2016 7:14:22 PM"
+}

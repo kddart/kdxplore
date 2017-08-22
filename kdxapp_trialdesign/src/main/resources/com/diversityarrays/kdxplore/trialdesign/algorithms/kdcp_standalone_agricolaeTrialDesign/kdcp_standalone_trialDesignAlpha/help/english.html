@@ -1,0 +1,45 @@
+<h2>More Detail</h2>
+
+This experiment can be with the following criteria:
+
+<ul>
+<li>Have replicated plantings of each treatment n_rep times</li>
+<li>Have a specific block size</li>
+<li>Sufficiently many environemnts (blocks) to test on (n_treatments / block_size * n_rep)</li>
+</ul>
+
+<p>The image at the top shows a layout of an experiment with a block size of 3 and 2 replications, totaling 6 blocks.</p>
+
+
+
+<h4>RULES</h4>
+
+<p> There must be more plots per block then block_size, i.e. block_size <= rows * cols</p>
+
+<p> The number of treatments must be the square of an integer</p>
+
+<p> Additionally, the following rules must be satified:</p>
+ 
+Given: s=length(treatmentnames)/block_size;
+ <table  cellspacing="20">
+	<tr>
+		<td valign="top">CONDITION</td>
+		<td valign="top">RULE</td>
+	</tr>
+	<tr>
+		<td valign="top"> nrep=2</td>
+		<td valign="top">block_size <= s</td>
+	</tr>
+	<tr>
+		<td valign="top"> nrep=3,s is odd</td>
+		<td valign="top">block_size<=s</td>
+	</tr>
+	<tr>
+		<td valign="top"> nrep=3,s is even</td>
+		<td valign="top">block_size<=s-1</td>
+	</tr>
+	<tr>
+		<td valign="top">  nrep=4, s odd</td>
+		<td valign="top">block_size <= s</td>
+	</tr>
+</table>

@@ -1,0 +1,20 @@
+{
+	"pluginGroup": "Agricolae Trial Design",
+		"lastUpdated": "Dec 6, 2016 8:51:53 PM",
+		"version": 2,
+		"author": "Andrew Kowalczyk",
+		"contact": "andrew@diverstiyarrays.com",
+		"plugins": [
+			"kdcp_standalone_trialDesignAlpha",
+		"kdcp_standalone_trialDesignBib",
+		"kdcp_standalone_trialDesignCrd",
+		"kdcp_standalone_trialDesignCyclic",
+		"kdcp_standalone_trialDesignDau",
+		"kdcp_standalone_trialDesignGraeco",
+		"kdcp_standalone_trialDesignLatinSquare",
+		"kdcp_standalone_trialDesignLattice",
+		"kdcp_standalone_trialDesignRcbd",
+		"kdcp_standalone_trialDesignStrip",
+		"kdcp_standalone_trialDesignYouden"
+			]
+}

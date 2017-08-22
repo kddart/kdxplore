@@ -1,0 +1,33 @@
+{
+  "algorithmName": "Latin Square",
+  "pluginName": "kdcp_standalone_trialDesignLatinSquare",
+  "versionCode": 6,
+  "versionString": "1.0",
+  "author": "Andrew Kowalczyk",
+  "description": "Single Environment Trial Design. Generates a Latin Square layout, arranging treatments much like a Sudoku.",
+  "legacy": false,
+  "knobs": [
+    {
+      "knobName": "TREATMENTFILE",
+      "description": "Treatment File",
+      "required": true,
+      "knobDataType": "FILE_UPLOAD",
+      "defaultValue": "",
+      "validationRule": "",
+      "tooltip": "Treatment FIle in format:\nA\nB\nC\nD\nE\n..."
+    },
+    {
+      "knobName": "rns",
+      "description": "Random Number Seed",
+      "required": false,
+      "knobDataType": "INTEGER",
+      "defaultValue": "0",
+      "validationRule": "(0..)",
+      "tooltip": "Random number seed"
+    }
+  ],
+  "inputDataSets": [],
+  "scriptTemplateFilename": "script.sh.tmpl",
+  "htmlHelp": "english.html",
+  "whenLastUpdated": "Dec 15, 2016 7:14:34 PM"
+}

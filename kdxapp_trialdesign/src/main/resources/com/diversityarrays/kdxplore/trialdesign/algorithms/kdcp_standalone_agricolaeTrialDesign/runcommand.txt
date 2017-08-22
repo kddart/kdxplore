@@ -1,0 +1,12 @@
+# AlgorithmName:<<Space>>RunCommand
+kdcp_standalone_trialDesignAlpha: Rscript $ALGORITHMDIR/trial_design_alpha.R --treatmentfile $TREATMENTFILE --outputdir ./ --rns $RNS --numrows $NUMROWS --numcols $NUMCOLS --nrep $NREP --sizeofblock $SIZEOFBLOCK
+kdcp_standalone_trialDesignBib: Rscript $ALGORITHMDIR/trial_design.R --treatmentfile $TREATMENTFILE --outputdir ./ --rns $RNS --numrows $NUMROWS --numcols $NUMCOLS --sizeofblock $SIZEOFBLOCK
+kdcp_standalone_trialDesignCrd: Rscript $ALGORITHMDIR/trial_design.R --treatmentfile $TREATMENTFILE --outputdir ./ --rns $RNS --numrows $NUMROWS --numcols $NUMCOLS
+kdcp_standalone_trialDesignCyclic: Rscript $ALGORITHMDIR/trial_design.R --treatmentfile $TREATMENTFILE --outputdir ./ --rns $RNS --numrows $NUMROWS --numcols $NUMCOLS --nrep $NREP --sizeofblock $SIZEOFBLOCK
+kdcp_standalone_trialDesignDau: Rscript $ALGORITHMDIR/trial_design.R --checksTreatmentfile $CHECKSTREATMENTFILE  --newTreatmentfile $NEWTREATMENTFILE --outputdir ./ --rns $RNS --numrows $NUMROWS --numcols $NUMCOLS --nreps $NREP
+kdcp_standalone_trialDesignGraeco: Rscript $ALGORITHMDIR/trial_design.R --treatmentfile $TREATMENTFILE --outputdir ./ --rns $RNS
+kdcp_standalone_trialDesignLatinSquare: Rscript $ALGORITHMDIR/trial_design.R --treatmentfile $TREATMENTFILE --outputdir ./ --rns $RNS
+kdcp_standalone_trialDesignLattice: Rscript $ALGORITHMDIR/trial_design.R --outputdir ./ --rns $RNS --treatmentfile $TREATMENTFILE --numrows $NUMROWS --numcols $NUMCOLS --nreps $NREP
+kdcp_standalone_trialDesignRcbd: Rscript $ALGORITHMDIR/trial_design.R --outputdir ./ --rns $RNS --treatmentfile $TREATMENTFILE --numrows $NUMROWS --numcols $NUMCOLS --numblocks $NUMBLOCKS
+kdcp_standalone_trialDesignStrip: Rscript $ALGORITHMDIR/trial_design.R --treatmentfile $PAIREDTREATMENTFILE --outputdir ./ --rns $RNS --nrep $NREP
+kdcp_standalone_trialDesignYouden: Rscript $ALGORITHMDIR/trial_design.R --treatmentfile $TREATMENTFILE --outputdir ./ --rns $RNS --nrep $NREP
