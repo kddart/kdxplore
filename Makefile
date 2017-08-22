@@ -17,13 +17,21 @@
 SPACE :=
 SPACE += 
 
-KDX_LIBS=kdxos_clientlib kdxos_common
+#MAKE_SILENT=
+MAKE_SILENT=-s
+
+KDX_LIBS=kdxos_clientlib kdxos_common kdxos_curcommon
 
 KDXAPPS=kdxapp_welcome kdxapp_trialmgr kdxapp_trialdesign
 
+# kdxos_main is last
 KDX_DIRS=$(KDX_LIBS) kdxos_main
 
 KDX_MAKEFILES=$(patsubst %,../%/Makefile,$(KDX_JARS))
+
+ifeq ($(JAVAC_DEBUG_FLAG),)
+	JAVAC_DEBUG_FLAG=-g:lines
+endif
 
 .PHONY: all
 all: kdx_jars kdxapps
@@ -33,7 +41,7 @@ kdx_jars:
 	@for d in $(KDX_LIBS); do rm -f kdxplore_os/lib/$$d.jar; done
 	@for d in $(KDX_DIRS); do \
 	    echo "[Building $$d]" >&2; \
-	    if ! make -s -C $$d; then exit 1; fi; \
+	    if ! make $(MAKE_SILENT) -C $$d; then exit 1; fi; \
 	done
 
 .PHONY: kdxapps
@@ -41,5 +49,5 @@ kdxapps:
 	@for d in $(KDXAPPS); do rm -f kdxplore_os/plugins/$$d.jar; done
 	@for d in $(KDXAPPS); do \
 	    echo "[Building $$d]" >&2; \
-	    if ! make -s -C $$d; then exit 1; fi; \
+	    if ! make $(MAKE_SILENT) -C $$d; then exit 1; fi; \
 	done
