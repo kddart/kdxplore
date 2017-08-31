@@ -106,13 +106,14 @@ public class SampleGroupExportDialog extends JDialog {
 
     private static final String TTT_DATABASE_VERSION_FOR_EXPORT = "Choose version for KDSmart compatibility";
 
+    private static final int MIN_DB_VERSION_FOR_KDSMART_3 = 30;
+    
 	enum OutputOption {
 		KDX(ExportFor.KDXPLORE, "KDX (for KDSmart)"),
 		ZIP(ExportFor.KDSMART_ZIP, "ZIP"),
 		CSV_FULL(ExportFor.KDSMART_CSV_FULL, "CSV (Plots & Individuals)"),
 		CSV_PLOTS(ExportFor.KDSMART_CSV_PLOTS_ONLY, "CSV"),
-		JSON(null, "JSON")
-		;
+		JSON(null, "JSON");
 
 		public final ExportFor exportFor;
 		public final String displayName;
@@ -254,7 +255,7 @@ public class SampleGroupExportDialog extends JDialog {
 		}
 	};
 
-	private final JCheckBox wantMediaFilesOption = new StrikeThroughCheckBox("Include Media Files", false);
+	private final JCheckBox wantMediaFilesOption = new StrikeThroughCheckBox("Include Media Files", true);
 	private final JCheckBox oldKdsmartOption = new StrikeThroughCheckBox("Old KDSmart Compat", false);
     private final JCheckBox kdsmartVersion3option = new StrikeThroughCheckBox("For KDSmart-v3", false);
 
@@ -420,6 +421,10 @@ public class SampleGroupExportDialog extends JDialog {
 			}
 		}
 
+		Box additionalOptionsBox = Box.createHorizontalBox();
+		additionalOptionsBox.add(this.wantMediaFilesOption);
+		additionalOptionsBox.add(this.kdsmartVersion3option);
+        
 		dbVersionLabel.setToolTipText(TTT_DATABASE_VERSION_FOR_EXPORT);
 		databaseVersionChoices.setToolTipText(TTT_DATABASE_VERSION_FOR_EXPORT);
 
@@ -439,6 +444,9 @@ public class SampleGroupExportDialog extends JDialog {
 		gbh.add(0,y, 3,1, GBH.HORZ, 1,1, GBH.CENTER, exportExclusionBox);
 		++y;
 
+		gbh.add(0,y, 3,1, GBH.HORZ, 1,1, GBH.CENTER, additionalOptionsBox);
+		++y;
+		
 		gbh.add(0,y, 1,1, GBH.NONE, 0,1, GBH.EAST, dbVersionLabel);
 		gbh.add(1,y, 2,1, GBH.HORZ, 1,1, GBH.CENTER, BoxBuilder.horizontal().add(databaseVersionChoices).get());
 
@@ -502,8 +510,9 @@ public class SampleGroupExportDialog extends JDialog {
 	    
 		this.excludeTheseTraitIds = entities.omittedTraits;
 		
-	    final Integer maxDatabaseVersionForWorkPackage =
-	            WorkPackageFactory.getMaxDbVersionForWorkPackage(kdsmartVersion3option.isSelected());
+	    final Integer maxDatabaseVersionForWorkPackage = kdsmartVersion3option.isSelected() ? 
+	    		WorkPackageFactory.MAX_DBVERSION_FOR_KDSMART_2 :
+	    	MIN_DB_VERSION_FOR_KDSMART_3;
 
 		BackgroundTask<File, Void> task = new BackgroundTask<File,Void>("Exporting...", true) {
 
@@ -608,8 +617,9 @@ public class SampleGroupExportDialog extends JDialog {
 				targetDatabaseVersion = KDSmartDatabaseUpgrader.FIRST_VERSION_WITH_EDAYS_AS_INT - 1;
 			}
 			else {
-				targetDatabaseVersion = kdxploreDatabase
-						.getKDXploreKSmartDatabase().getDatabaseVersion();
+				targetDatabaseVersion = ! this.kdsmartVersion3option.isSelected() ? 
+						(int) databaseVersionChoices.getSelectedItem() : 
+							kdxploreDatabase.getKDXploreKSmartDatabase().getDatabaseVersion();
 			}
 
 			boolean wantMediaFiles = wantMediaFilesOption.isSelected();

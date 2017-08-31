@@ -77,6 +77,7 @@ import com.diversityarrays.kdxplore.KdxConstants;
 import com.diversityarrays.kdxplore.data.KdxploreDatabase;
 import com.diversityarrays.kdxplore.data.OfflineData;
 import com.diversityarrays.kdxplore.data.OfflineDataChangeListener;
+import com.diversityarrays.kdxplore.data.kdx.CurationDataCollector;
 import com.diversityarrays.kdxplore.data.kdx.DeviceIdentifier;
 import com.diversityarrays.kdxplore.data.kdx.DeviceType;
 import com.diversityarrays.kdxplore.data.kdx.KdxSample;
@@ -691,18 +692,20 @@ public class TrialOverviewPanel extends JPanel {
 	    refreshTrialTableModel();
 	}
 
-	private void refreshTrialTableModel() {
-
-        KdxploreDatabase kdxdb = offlineData.getKdxploreDatabase();
-        if (kdxdb == null) {
-            return;
-        }
-	    Trial selectedTrial = trialTraitsTableModel.getSelectedTrial();
-
-        ListSelectionModel lsm = trialsTable.getSelectionModel();
+	public void refreshTrialTableModel() {
+		refreshTrialTableModel(null);
+	}
+	
+	private void refreshTrialTableModel(KdxploreDatabase kdxdb) {
+		//TODO ListSelectionModel Everywhere in this file Manil
+		//		ListSelectionModel lsm = trialTreeTableModel.getSelectionModel();
 		try {
-	        lsm.setValueIsAdjusting(true);
-//			trialsTable.clearSelection();
+			//			lsm.setValueIsAdjusting(true);
+			//			trialsTable.clearSelection();
+
+			if (kdxdb == null ) {
+				kdxdb  = offlineData.getKdxploreDatabase();
+			}
 
 			Map<Trial, List<SampleGroup>> trialsAndSampleGroups = kdxdb.getTrialsAndSampleGroups(KdxploreDatabase.WithSamplesOption.WITHOUT_SAMPLES);
 			trialTableModel.setTrialsAndSampleGroups(trialsAndSampleGroups);
@@ -713,7 +716,7 @@ public class TrialOverviewPanel extends JPanel {
 
 			for (Trial trial : trialsAndSampleGroups.keySet()) {
 
-			    Predicate<TraitInstance> traitInstanceVisitor = new Predicate<TraitInstance>() {
+				Predicate<TraitInstance> traitInstanceVisitor = new Predicate<TraitInstance>() {
 					@Override
 					public boolean evaluate(TraitInstance ti) {
 						Map<Trait,Integer> map = traitSsoByTrial.get(trial);
@@ -727,7 +730,7 @@ public class TrialOverviewPanel extends JPanel {
 				};
 
 				kdsdb.visitTraitInstancesForTrial(trial.getTrialId(),
-				        WithTraitOption.ALL_WITH_TRAITS,
+						WithTraitOption.ALL_WITH_TRAITS,
 						traitInstanceVisitor);
 			}
 
@@ -736,18 +739,19 @@ public class TrialOverviewPanel extends JPanel {
 		} catch (IOException e) {
 			MsgBox.error(TrialOverviewPanel.this, e.getMessage(), "Problem Getting Trials");
 		} finally {
-            lsm.clearSelection();
+			//			lsm.clearSelection();
+			//
+			//			int modelRow = trialTreeTableModel.indexOfTrial(selectedTrial);
+			//			if (modelRow >= 0) {
+			//				int viewRow = trialTreeTableModel.convertRowIndexToView(modelRow);
+			//				if (viewRow >= 0) {
+			//					lsm.setSelectionInterval(viewRow, viewRow);
+			//				}
+			//			}
 
-		    int modelRow = trialTableModel.indexOfTrial(selectedTrial);
-		    if (modelRow >= 0) {
-		        int viewRow = trialsTable.convertRowIndexToView(modelRow);
-		        if (viewRow >= 0) {
-		            lsm.setSelectionInterval(viewRow, viewRow);
-		        }
-		    }
-
-	        lsm.setValueIsAdjusting(false);
 		}
+		//		
+		//					lsm.setValueIsAdjusting(false);
 	}
 
 	private void trialAdded(Trial trial) {
@@ -832,240 +836,301 @@ public class TrialOverviewPanel extends JPanel {
 		this.traitExplorer = traitExplorer;
 	}
 
-    private void doAddTraitsAndOrInstances() {
-        try {
-            Trial selectedTrial = trialTraitsTableModel.getSelectedTrial();
-            if (selectedTrial == null) {
-            	return;
-            }
+	private List<TraitInstance> getAllTraitInstances(Trial selectedTrial) {
+		List<TraitInstance> instances = new ArrayList<>();
 
-            Set<Integer> currentTraitIds = trialTraitsTableModel.getTraitList().stream()
-                    .map(Trait::getTraitId)
-                    .collect(Collectors.toSet());
+		try {
+			CurationDataCollector cdc = new CurationDataCollector(
+					offlineData.getKdxploreDatabase(),
+					selectedTrial,
+					true);
 
-            List<Trait> unusedTraits = offlineData.getKdxploreDatabase().getAllTraits()
-                .stream()
-                .filter(trt -> ! currentTraitIds.contains(trt.getTraitId()))
-                .collect(Collectors.toList());
+			instances = cdc.traitInstances;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
-            if (unusedTraits.isEmpty()) {
-            	MsgBox.info(TrialOverviewPanel.this,
-            			"This Trial already has all the Traits assigned",
-            			Msg.TITLE_ADD_TRAITS_TO_TRIAL(selectedTrial.getTrialName()));
-            	return;
-            }
+		return instances;
+	}
+	
+	private void doAddTraitsAndOrInstances() {
+		try {
 
-            AddTraitsDialog dlg = new AddTraitsDialog(
-                    GuiUtil.getOwnerWindow(TrialOverviewPanel.this),
-                    selectedTrial,
-                    unusedTraits);
+			List<Trait> unusedTraits = offlineData.getKdxploreDatabase().getAllTraits();
+			//            		.stream()
+			//            		.filter(trt -> ! currentTraitIds.contains(trt.getTraitId()))
+			//            		.collect(Collectors.toList());
 
-            Dimension sz = dlg.getSize();
-            dlg.setSize((int) (sz.width * 1.4), sz.height);
+			Map<Integer,Trait> traitById = unusedTraits.stream()
+					.collect(Collectors.toMap(Trait::getTraitId, Function.identity()));
 
-            dlg.setVisible(true);
+			Trial selectedTrial = trialTraitsTableModel.getSelectedTrial();
+			List<TraitInstance> instances = getAllTraitInstances(selectedTrial);
 
-            Map<Trait,List<Integer>> map = dlg.getTraitAndInstanceNumber();
-            if (map != null) {
-                doAddTraitInstances(selectedTrial, map);
-            }
-        } catch (IOException e1) {
-            MsgBox.error(TrialOverviewPanel.this,
-                    e1,
-                    "Add Traits - Database Error");
-        }
-    }
+			Map<Trait,Integer> instancesByTrait = new HashMap<>();
+			for (TraitInstance ti : instances) {
+				Trait trait = traitById.get(ti.getTraitId());
 
-    private void doAddTraitInstances(Trial selectedTrial, Map<Trait, List<Integer>> instanceNumbersByTrait) throws IOException {
+				Integer inst = instancesByTrait.get(trait);
+				if (inst == null) {
+					inst = 1;
+				} else {
+					inst++;
+				}
+				instancesByTrait.put(trait, inst);          	
+			}
 
-        if (instanceNumbersByTrait.isEmpty()) {
-            return;
-        }
+			for (Trait trait : traitById.values()) {
+				if (! instancesByTrait.containsKey(trait)) {
+					instancesByTrait.put(trait, 0);
+				}     	
+			}
 
-        int trialId = selectedTrial.getTrialId();
+			AddTraitsDialog dlg = new AddTraitsDialog(
+					GuiUtil.getOwnerWindow(TrialOverviewPanel.this),
+					selectedTrial,
+					instancesByTrait);
 
-        int maxSso = 0;
-        Bag<Integer> ssoUseCount = new HashBag<>();
+			Dimension sz = dlg.getSize();
+			dlg.setSize((int) (sz.width * 1.4), sz.height);
 
-        Map<Trait, Integer> traitSsoMap = trialTraitsTableModel.getTraitsSsoForTrial(selectedTrial);
-        if (! Check.isEmpty(traitSsoMap)) {
-            for (Integer sso : traitSsoMap.values()) {
-                if (sso != null) {
-                    maxSso = Math.max(maxSso, sso);
-                    ssoUseCount.add(sso);
-                }
-            }
-        }
+			dlg.setVisible(true);
 
-        TraitNameStyle traitNameStyle = selectedTrial.getTraitNameStyle();
+			Map<Trait,List<Integer>> map = dlg.getTraitAndInstanceNumber();
+			if (map != null) {
+				doAddTraitInstances(selectedTrial, map);
+			}
+		} catch (IOException e1) {
+			MsgBox.error(TrialOverviewPanel.this,
+					e1,
+					"Add Traits - Database Error");
+		}
+	}
 
-        final int firstInstanceNumber = traitNameStyle.getFirstInstanceNumber();
+	private void doAddTraitInstances(Trial selectedTrial, Map<Trait, List<Integer>> instanceNumbersByTrait) throws IOException {
 
-        int maxSsoIncrement = 1;
-        if (ssoUseCount.uniqueSet().size() == 1
-            &&
-            maxSso == 0
-            &&
-            ssoUseCount.getCount(maxSso) > 1)
-        {
-            // Special hack for Trials that haven't yet been "sorted".
-            // (i.e. all the SSOs are the same value
-            maxSsoIncrement = 0;
-        }
+		List<Trait> unusedTraits = offlineData.getKdxploreDatabase().getAllTraits();
 
-        List<Trait> ignored = new ArrayList<>();
-        Map<TraitLevel, List<TraitInstance>> instancesByLevel = new HashMap<>();
-        boolean multipleTraitInstances = false;
+		Map<Integer,Trait> traitById = unusedTraits.stream()
+				.collect(Collectors.toMap(Trait::getTraitId, Function.identity()));
 
-        Set<TraitInstance> traitInstances = new LinkedHashSet<>();
-        for (Trait trait : instanceNumbersByTrait.keySet()) {
+		List<TraitInstance> instances = this.getAllTraitInstances(selectedTrial);
 
-            switch (trait.getTraitLevel()) {
-            case PLOT:
-            case SPECIMEN:
-                break;
-            default:
-                ignored.add(trait);
-                continue;
-            }
-            maxSso += maxSsoIncrement;
+		Map<Trait,Integer> instancesByTrait = new HashMap<>();
+		for (TraitInstance ti : instances) {
+			Trait trait = traitById.get(ti.getTraitId());
 
-            List<Integer> instancesNumbersWanted = instanceNumbersByTrait.get(trait);
-            if (instancesNumbersWanted.size() > 1) {
-                multipleTraitInstances = true;
-            }
+			Integer inst = instancesByTrait.get(trait);
+			if (inst == null) {
+				inst = ti.getInstanceNumber();
+			} else {
+				inst++;
+			}
+			instancesByTrait.put(trait, inst);          	
+		}
 
-            for (Integer instanceNumber : instancesNumbersWanted) {
-                TraitInstance ti = new TraitInstance();
-                if (firstInstanceNumber <= 0) {
-                    ti.setInstanceNumber(instanceNumber - 1);
-                }
-                else {
-                    ti.setInstanceNumber(instanceNumber);
-                }
-                ti.setScoringSortOrder(maxSso);
-                ti.setTraitId(trait.getTraitId());
-                ti.setTrialId(trialId);
-                ti.setUsedForScoring(true);
+		for (Trait trait : instanceNumbersByTrait.keySet()) {
+			List<Integer> newInstances = instanceNumbersByTrait.get(trait);
 
-                traitInstances.add(ti);
+			if (! Check.isEmpty(newInstances)) {
+				Integer currentCount = instancesByTrait.get(trait) ;
 
-                List<TraitInstance> list = instancesByLevel.get(trait.getTraitLevel());
-                if (list == null) {
-                    list = new ArrayList<>();
-                    instancesByLevel.put(trait.getTraitLevel(), list);
-                }
-                list.add(ti);
-            }
-        }
+				if (currentCount != null) {
+					List<Integer> toUse = new ArrayList<>();
+					newInstances.stream().forEach(i -> toUse.add(i += currentCount));      			
+					instanceNumbersByTrait.put(trait, toUse);
+				}
+			}
+		}
 
-        KdxploreDatabase kdxdb = offlineData.getKdxploreDatabase();
-        KDSmartDatabase kdsdb = kdxdb.getKDXploreKSmartDatabase();
+		if (instanceNumbersByTrait.isEmpty()) {
+			return;
+		}
 
-        Map<Integer, DeviceIdentifier> devidMap = kdxdb.getDeviceIdentifierMap();
-        Optional<DeviceIdentifier> opt_devid = devidMap.values().stream().filter(devid -> DeviceType.EDITED.equals(devid.getDeviceType())).findFirst();
+		int trialId = selectedTrial.getTrialId();
 
-        List<KdxSample> samples;
-        if (opt_devid.isPresent()) {
-            DeviceIdentifier curated = opt_devid.get();
-            List<SampleGroup> sampleGroups = kdxdb.getSampleGroups(trialId, KdxploreDatabase.WithSamplesOption.WITH_SAMPLES);
-            int curatedSampleGroupId = curated.getDeviceIdentifierId();
+		int maxSso = 0;
+		Bag<Integer> ssoUseCount = new HashBag<>();
 
-            Optional<SampleGroup> opt_sg = sampleGroups.stream().filter(sg -> curatedSampleGroupId == sg.getDeviceIdentifierId()).findFirst();
-            if (opt_sg.isPresent()) {
-                samples = new ArrayList<>();
+		Map<Trait, Integer> traitSsoMap = trialTraitsTableModel.getTraitsSsoForTrial(selectedTrial);
+		if (! Check.isEmpty(traitSsoMap)) {
+			for (Integer sso : traitSsoMap.values()) {
+				if (sso != null) {
+					maxSso = Math.max(maxSso, sso);
+					ssoUseCount.add(sso);
+				}
+			}
+		}
 
-                List<TraitInstance> plotInstances = instancesByLevel.get(TraitLevel.PLOT);
-                List<TraitInstance> subPlotInstances = instancesByLevel.get(TraitLevel.SPECIMEN);
+		TraitNameStyle traitNameStyle = selectedTrial.getTraitNameStyle();
 
-                Consumer<KdxSample> sampleConsumer = new Consumer<KdxSample>() {
-                    @Override
-                    public void accept(KdxSample sample) {
-                        samples.add(sample);
-                    }
-                };
-                TrialItemVisitor<Plot> plotVisitor = new TrialItemVisitor<Plot>() {
-                    @Override
-                    public void setExpectedItemCount(int count) {}
-                    @Override
-                    public boolean consumeItem(Plot plot) {
-                        DatabaseUtil.createSamples(
-                                trialId,
-                                plot,
-                                curatedSampleGroupId,
-                                null, // previousSamplesByKey
-                                plotInstances,
-                                subPlotInstances,
-                                sampleConsumer);
-                        return true;
-                    }
-                };
+		final int firstInstanceNumber = traitNameStyle.getFirstInstanceNumber();
 
-                kdsdb.visitPlotsForTrial(trialId, SampleGroupChoice.NO_TAGS_SAMPLE_GROUP,
-                        KDSmartDatabase.WithPlotAttributesOption.WITHOUT_PLOT_ATTRIBUTES,
-                        plotVisitor);
-            }
-            else {
-                samples = null;
-            }
-        }
-        else {
-            samples = null;
-        }
+		int maxSsoIncrement = 1;
+		if (ssoUseCount.uniqueSet().size() == 1
+				&&
+				maxSso == 0
+				&&
+				ssoUseCount.getCount(maxSso) > 1)
+		{
+			// Special hack for Trials that haven't yet been "sorted".
+			// (i.e. all the SSOs are the same value
+			maxSsoIncrement = 0;
+		}
 
-        BatchHandler<Void> batchHandler = new BatchHandler<Void>() {
-            @Override
-            public Void call() throws Exception {
-                kdsdb.saveTraitInstances(traitInstances);
-                if (! Check.isEmpty(samples)) {
-                    kdsdb.saveMultipleSamples(samples, false);
-                }
-                return null;
-            }
+		List<Trait> ignored = new ArrayList<>();
+		Map<TraitLevel, List<TraitInstance>> instancesByLevel = new HashMap<>();
+		boolean multipleTraitInstances = false;
 
-            @Override
-            public boolean checkSuccess(Void t) {
-                return true;
-            }
-        };
+		Set<TraitInstance> traitInstances = new LinkedHashSet<>();
+		for (Trait trait : instanceNumbersByTrait.keySet()) {
 
-        boolean saved = true;
-        Either<Exception, Void> either = kdsdb.doBatch(batchHandler);
-        if (either.isLeft()) {
-            saved = false;
-            MsgBox.error(TrialOverviewPanel.this, either.left(), "Database Error");
-        }
-        refreshTrialTableModel();
+			switch (trait.getTraitLevel()) {
+			case PLOT:
+			case SPECIMEN:
+				break;
+			default:
+				ignored.add(trait);
+				continue;
+			}
+			maxSso += maxSsoIncrement;
 
-        trialTraitsTableModel.setSelectedTrial(selectedTrial);
+			List<Integer> instancesNumbersWanted = instanceNumbersByTrait.get(trait);
+			if (instancesNumbersWanted.size() > 1) {
+				multipleTraitInstances = true;
+			}
 
-        if (saved) {
-            String prefix = multipleTraitInstances ? "Trait Instances Added:\n" : "Traits Added:\n";
+			for (Integer instanceNumber : instancesNumbersWanted) {
+				TraitInstance ti = new TraitInstance();
+				//                if (firstInstanceNumber <= 0) {
+				//                    ti.setInstanceNumber(instanceNumber - 1);
+				//                }
+				//                else {
+				ti.setInstanceNumber(instanceNumber);
+				//                }
+				ti.setScoringSortOrder(maxSso);
+				ti.setTraitId(trait.getTraitId());
+				ti.setTrialId(trialId);
+				ti.setUsedForScoring(true);
 
-            Function<Trait, String> nameFactory = new Function<Trait, String>() {
-                @Override
+				traitInstances.add(ti);
+
+				List<TraitInstance> list = instancesByLevel.get(trait.getTraitLevel());
+				if (list == null) {
+					list = new ArrayList<>();
+					instancesByLevel.put(trait.getTraitLevel(), list);
+				}
+				list.add(ti);
+			}
+		}
+
+		KdxploreDatabase kdxdb = offlineData.getKdxploreDatabase();
+		KDSmartDatabase kdsdb = kdxdb.getKDXploreKSmartDatabase();
+
+		Map<Integer, DeviceIdentifier> devidMap = kdxdb.getDeviceIdentifierMap();
+		Optional<DeviceIdentifier> opt_devid = devidMap.values().stream().filter(devid -> DeviceType.EDITED.equals(devid.getDeviceType())).findFirst();
+
+		List<KdxSample> samples;
+		if (opt_devid.isPresent()) {
+			DeviceIdentifier curated = opt_devid.get();
+			List<SampleGroup> sampleGroups = kdxdb.getSampleGroups(trialId, KdxploreDatabase.WithSamplesOption.WITH_SAMPLES);
+			int curatedSampleGroupId = curated.getDeviceIdentifierId();
+
+			Optional<SampleGroup> opt_sg = sampleGroups.stream().filter(sg -> curatedSampleGroupId == sg.getDeviceIdentifierId()).findFirst();
+			if (opt_sg.isPresent()) {
+				samples = new ArrayList<>();
+
+				List<TraitInstance> plotInstances = instancesByLevel.get(TraitLevel.PLOT);
+				List<TraitInstance> subPlotInstances = instancesByLevel.get(TraitLevel.SPECIMEN);
+
+				Consumer<KdxSample> sampleConsumer = new Consumer<KdxSample>() {
+					@Override
+					public void accept(KdxSample sample) {
+						samples.add(sample);
+					}
+				};
+				TrialItemVisitor<Plot> plotVisitor = new TrialItemVisitor<Plot>() {
+					@Override
+					public void setExpectedItemCount(int count) {}
+					@Override
+					public boolean consumeItem(Plot plot) {
+						DatabaseUtil.createSamples(
+								trialId,
+								plot,
+								curatedSampleGroupId,
+								null, // previousSamplesByKey
+								plotInstances,
+								subPlotInstances,
+								sampleConsumer);
+						return true;
+					}
+				};
+
+				kdsdb.visitPlotsForTrial(trialId,  SampleGroupChoice.NO_TAGS_SAMPLE_GROUP,
+						KDSmartDatabase.WithPlotAttributesOption.WITHOUT_PLOT_ATTRIBUTES,
+						plotVisitor);
+			}
+			else {
+				samples = null;
+			}
+		}
+		else {
+			samples = null;
+		}
+
+		BatchHandler<Void> batchHandler = new BatchHandler<Void>() {
+			@Override
+			public Void call() throws Exception {
+				kdsdb.saveTraitInstances(traitInstances);
+				if (! Check.isEmpty(samples)) {
+					kdsdb.saveMultipleSamples(samples, false);
+				}
+				return null;
+			}
+
+			@Override
+			public boolean checkSuccess(Void t) {
+				return true;
+			}
+		};
+
+		boolean saved = true;
+		Either<Exception, Void> either = kdsdb.doBatch(batchHandler);
+		if (either.isLeft()) {
+			saved = false;
+			MsgBox.error(TrialOverviewPanel.this, either.left(), "Database Error");
+		}
+		refreshTrialTableModel(offlineData.getKdxploreDatabase());
+
+		trialTraitsTableModel.setSelectedTrial(selectedTrial);
+
+		if (saved) {
+			String prefix = multipleTraitInstances ? "Trait Instances Added:\n" : "Traits Added:\n";
+
+			Function<Trait, String> nameFactory = new Function<Trait, String>() {
+				@Override
 				public String apply(Trait trait) {
-                    List<Integer> instanceNumbers = instanceNumbersByTrait.get(trait);
-                    if (instanceNumbers == null) {
-                        return null;
-                    }
-                    else {
-                        return instanceNumbers.stream().map(inum -> inum.toString())
-                                    .collect(Collectors.joining(",", trait.getTraitName() + ": ", ""));
-                    }
-                }
-            };
+					List<Integer> instanceNumbers = instanceNumbersByTrait.get(trait);
+					if (instanceNumbers == null) {
+						return null;
+					}
+					else {
+						return instanceNumbers.stream().map(inum -> inum.toString())
+								.collect(Collectors.joining(",", trait.getTraitName() + ": ", ""));
+					}
+				}
+			};
 
-            String selection = instanceNumbersByTrait.keySet().stream()
-                .map(nameFactory)
-                .filter(n -> n != null)
-                .collect(Collectors.joining("\n", prefix, "\n------"));  //$NON-NLS-1$//$NON-NLS-2$
+			String selection = instanceNumbersByTrait.keySet().stream()
+					.map(nameFactory)
+					.filter(n -> n != null)
+					.collect(Collectors.joining("\n", prefix, "\n------"));  //$NON-NLS-1$//$NON-NLS-2$
 
-            messagePrinter.println(selection);
+			messagePrinter.println(selection);
 
-            if (samples != null) {
-                messagePrinter.println("Samples Added: " + samples.size());
-            }
-        }
-    }
+			if (samples != null) {
+				messagePrinter.println("Samples Added: " + samples.size());
+			}
+		}
+	}
 }

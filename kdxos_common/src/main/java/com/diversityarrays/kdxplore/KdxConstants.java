@@ -70,8 +70,8 @@ public class KdxConstants {
     // true to disable alpha/beta expiry checking
     static public final boolean PRODUCTION_MODE;
 
-    static public final int VERSION_CODE = 45;
-    static public final String VERSION = "2.0.45"; // NOTE: 2.0.xx is reserved for CIMMYT source
+    static public final int VERSION_CODE = 46;
+    static public final String VERSION = "2.0.46"; // NOTE: 2.0.xx is reserved for CIMMYT source
 
     static {
         int pos = VERSION.indexOf('.');
