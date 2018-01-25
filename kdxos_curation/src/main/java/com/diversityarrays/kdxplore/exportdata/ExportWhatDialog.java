@@ -56,7 +56,6 @@ import com.diversityarrays.kdsmart.db.csvio.CsvImportDefinition;
 import com.diversityarrays.kdsmart.db.entities.PlotIdentSummary;
 import com.diversityarrays.kdsmart.db.entities.TraitValue;
 import com.diversityarrays.kdsmart.db.entities.Trial;
-import com.diversityarrays.kdsmart.field.UnicodeChars;
 import com.diversityarrays.kdxplore.Shared;
 import com.diversityarrays.kdxplore.Shared.For;
 import com.diversityarrays.kdxplore.exportdata.ExportOptions.PlotAttrAsNumber;
@@ -66,6 +65,7 @@ import com.diversityarrays.kdxplore.prefs.KdxplorePreferences;
 import com.diversityarrays.kdxplore.trialmgr.TrialManagerPreferences;
 import com.diversityarrays.kdxplore.ui.Toast;
 import com.diversityarrays.util.RunMode;
+import com.diversityarrays.util.UnicodeChars;
 
 import net.pearcan.dnd.DropLocationInfo;
 import net.pearcan.dnd.FileDrop;

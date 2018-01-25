@@ -48,8 +48,6 @@ import com.diversityarrays.kdsmart.db.entities.TraitInstance;
 import com.diversityarrays.kdsmart.db.entities.TraitNameStyle;
 import com.diversityarrays.kdsmart.db.entities.TraitValue;
 import com.diversityarrays.kdsmart.db.entities.Trial;
-import com.diversityarrays.kdsmart.field.UnicodeChars;
-import com.diversityarrays.kdsmart.field.UnicodeChars.Number;
 import com.diversityarrays.kdsmart.scoring.PlotVisitGroup;
 import com.diversityarrays.kdsmart.scoring.PlotVisitList;
 import com.diversityarrays.kdsmart.scoring.WalkSegment;
@@ -67,6 +65,8 @@ import com.diversityarrays.kdxplore.ttools.shared.SampleIconType;
 import com.diversityarrays.util.Check;
 import com.diversityarrays.util.Pair;
 import com.diversityarrays.util.SunSwingDefaultLookup;
+import com.diversityarrays.util.UnicodeChars;
+import com.diversityarrays.util.UnicodeChars.Number;
 
 import android.util.Log;
 import net.pearcan.util.StringUtil;

@@ -65,8 +65,8 @@ import com.diversityarrays.kdsmart.db.util.CsvWriterImpl;
 import com.diversityarrays.kdxplore.curate.TraitInstanceValueRetriever;
 import com.diversityarrays.kdxplore.data.InstanceIdentifierUtil;
 import com.diversityarrays.kdxplore.data.kdx.KdxSample;
-import com.diversityarrays.kdxplore.importdata.bms.BmsConstant.BmsCellColor;
-import com.diversityarrays.kdxplore.importdata.bms.BmsExcelExportHelper;
+import com.diversityarrays.kdxplore.importdata.bms.BmsCellColor;
+//import com.diversityarrays.kdxplore.importdata.bms.BmsExcelExportHelper;
 import com.diversityarrays.kdxplore.importdata.bms.BmsExcelImportHelper;
 import com.diversityarrays.kdxplore.importdata.bms.SectionRowData;
 import com.diversityarrays.kdxplore.trialmgr.TrialManagerPreferences;
@@ -571,6 +571,9 @@ public class CurationDataExporter {
 			List<Accessor<?>> accessors = new ArrayList<>();
 			
 			if (options.bmsFormat) {
+				/**
+				 * @Deprecated
+				 */
 				collectBMSaccessors(
 						options, hasPlotType, plotAttributes, accessors);
 				
@@ -905,12 +908,17 @@ public class CurationDataExporter {
 				List<TraitInstance> traitInstances) 
 		{
 			if (options.bmsFormat) {
+				/**
+				 * @Deprecated
+				 */
 				// similar to below but use BMS names etc.
 				// e.g. if trialName ends with trial attribute "Instance" remove the instance number
-				BmsExcelExportHelper beeh = new BmsExcelExportHelper(
-						workbookOutput, trial, cellStyleProvider, trialAttributes, traitInstances);
-				beeh.emitDescriptionSheet(
-						options, helper.hasPlotType(true), plotAttributes);
+//				BmsExcelExportHelper beeh = new BmsExcelExportHelper(
+//						workbookOutput, trial, cellStyleProvider, trialAttributes, traitInstances);
+//				beeh.emitDescriptionSheet(
+//						options, helper.hasPlotType(true), plotAttributes);
+				throw new RuntimeException("BMS export format not supported here due to halted incompletion of"
+						+ "BMS <- DAL Interop at the time of this release.");
 			} else {
 				KdxploreExcelExportHelper keeh = new KdxploreExcelExportHelper(
 						workbookOutput, trial, cellStyleProvider);
