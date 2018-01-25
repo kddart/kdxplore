@@ -12,13 +12,11 @@
 	<classpathentry exported="true" kind="lib" path="libs/httpcore-4.3.jar"/>
 	<classpathentry exported="true" kind="lib" path="libs/httpmime-4.3.jar"/>
 	<classpathentry exported="true" kind="lib" path="libs/javax.persistence-2.0.0.jar"/>
-	<classpathentry exported="true" kind="lib" path="libs/kdx_curcommon.jar"/>
 	<classpathentry exported="true" kind="lib" path="libs/kdx_database.jar"/>
 	<classpathentry exported="true" kind="lib" path="libs/kdx_kddart_helper.jar"/>
 	<classpathentry exported="true" kind="lib" path="libs/kdx_kddart_schbase.jar"/>
 	<classpathentry exported="true" kind="lib" path="libs/kdx_kddart_schema.jar"/>
 	<classpathentry exported="true" kind="lib" path="libs/kdx_kdx2s.jar"/>
-	<classpathentry exported="true" kind="lib" path="libs/kdx_ttools.jar"/>
 	<classpathentry exported="true" kind="lib" path="libs/kdx_upload.jar"/>
 	<classpathentry exported="true" kind="lib" path="libs/l2fprod-common-all.jar"/>
 	<classpathentry exported="true" kind="lib" path="libs/opencsv-2.3.jar"/>
@@ -33,5 +31,9 @@
 	<classpathentry exported="true" kind="lib" path="libs/zxing-core.jar"/>
 	<classpathentry exported="true" kind="lib" path="libs/zxing-javase.jar"/>
 	<classpathentry kind="lib" path="libs/kdx_gtools.jar"/>
+	<classpathentry kind="lib" path="libs/jcommon-1.0.23.jar"/>
+	<classpathentry kind="lib" path="libs/jfreechart-1.0.19.jar"/>
+	<classpathentry kind="lib" path="libs/pearcan-heatmap.jar"/>
+	<classpathentry kind="lib" path="libs/wizard.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
