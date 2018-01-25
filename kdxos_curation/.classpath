@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/kdxapp_trialmgr"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/kdx_ttools"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/kdx_stats"/>
+	<classpathentry kind="lib" path="/kdxos_libs/libs/collections-generic-4.01.jar"/>
+	<classpathentry kind="lib" path="/kdxos_libs/libs/opencsv-2.3.jar"/>
+	<classpathentry kind="lib" path="/kdxos_libs/libs/pearcan-core.jar"/>
+	<classpathentry kind="lib" path="/kdxos_libs/libs/poi-3.12-20150511.jar"/>
+	<classpathentry kind="lib" path="/kdxos_libs/libs/ssupport.jar"/>
+	<classpathentry kind="lib" path="/kdxos_libs/libs/swingx-all-1.6.4.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/kdxos_clientlib"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/kdxos_common"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/kdxos_curcommon"/>
+	<classpathentry kind="lib" path="/kdxos_libs/libs/kdx_database.jar"/>
+	<classpathentry kind="lib" path="/kdxos_libs/libs/kdx_kddart_helper.jar"/>
+	<classpathentry kind="lib" path="/kdxos_libs/libs/kdx_kddart_schbase.jar"/>
+	<classpathentry kind="lib" path="/kdxos_libs/libs/kdx_kddart_schema.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
