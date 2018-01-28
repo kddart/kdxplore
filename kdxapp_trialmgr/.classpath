@@ -7,5 +7,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/kdxos_clientlib"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/kdxos_libs"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/kdxos_curcommon"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/kdx_ttools"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

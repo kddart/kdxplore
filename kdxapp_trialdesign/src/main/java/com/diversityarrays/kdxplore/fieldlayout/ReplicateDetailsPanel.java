@@ -61,11 +61,11 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
 
 import com.diversityarrays.kdsmart.scoring.PlotsPerGroup;
-import com.diversityarrays.kdxplore.curate.CollectionPathSetupDialog;
 import com.diversityarrays.kdxplore.design.EntryType;
 import com.diversityarrays.kdxplore.design.EntryTypeCounter;
 import com.diversityarrays.kdxplore.design.ReplicateDetailsModel;
 import com.diversityarrays.kdxplore.design.ReplicateDetailsModel.DetailsChangeListener;
+import com.diversityarrays.kdxplore.field.CollectionPathSetupDialog;
 import com.diversityarrays.kdxplore.fielddesign.EditModeWidget;
 import com.diversityarrays.kdxplore.fielddesign.FieldLayoutEditPanel;
 import com.diversityarrays.kdxplore.fieldlayout.PlantingBlock.WhatChanged;

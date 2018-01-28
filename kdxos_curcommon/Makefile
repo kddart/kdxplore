@@ -28,10 +28,10 @@ LIB_JARS=collections-generic-4.01.jar commons-logging-1.2.jar gson-2.3.1.jar \
 	pearcan-core.jar \
 	ormlite-core-4.48.jar \
 	ssupport.jar \
-        kdx_stats.jar \
-	kdx_database.jar
+	kdx_database.jar \
+	kdx_kddart_helper.jar
 
-KDX_JARS=kdxos_clientlib.jar kdxos_common.jar kdx_stats.jar kdx_ttools.jar kdx_kddart_helper.jar
+KDX_JARS=kdxos_clientlib.jar kdxos_common.jar kdx_stats.jar kdx_ttools.jar
 KDX_JARPATH=$(subst $(SPACE),:,$(patsubst %,$(JAR_DESTDIR)/%,$(KDX_JARS)))
 
 CLASSPATH=$(subst $(SPACE),:,$(patsubst %,$(LIBS_DIR)/%,$(LIB_JARS))):$(KDX_JARPATH)

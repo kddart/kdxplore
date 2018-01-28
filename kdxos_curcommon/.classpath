@@ -6,6 +6,7 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/kdxos_clientlib"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/kdxos_common"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/kdxos_libs"/>
-	<classpathentry kind="lib" path="/kdxos_libs/libs/kdx_stats.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/kdx_stats"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/kdx_ttools"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

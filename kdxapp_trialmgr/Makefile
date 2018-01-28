@@ -26,7 +26,7 @@ JAR_DESTDIR=$(KDXPLORE_OS)/lib
 
 LIBS_JARPATH=$(subst $(SPACE),:,$(wildcard $(LIBS_DIR)/*.jar))
 
-KDXOS_JARS=kdxos_clientlib.jar kdxos_common.jar kdxos_curcommon.jar
+KDXOS_JARS=kdxos_clientlib.jar kdxos_common.jar kdxos_ttools.jar kdxos_curcommon.jar
 KDXOS_JARPATH=$(subst $(SPACE),:,$(patsubst %,$(JAR_DESTDIR)/%,$(KDXOS_JARS)))
 
 CLASSPATH=$(KDXOS_JARPATH):$(LIBS_JARPATH)

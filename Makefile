@@ -20,9 +20,9 @@ SPACE +=
 #MAKE_SILENT=
 MAKE_SILENT=-s
 
-KDX_LIBS=kdxos_clientlib kdxos_common kdxos_curcommon
+KDX_LIBS=kdxos_clientlib kdxos_common kdxos_stats kdxos_ttools kdxos_curcommon
 
-KDXAPPS=kdxapp_welcome kdxapp_trialmgr kdxapp_trialdesign
+KDXAPPS=kdxapp_welcome kdxapp_trialmgr kdxapp_trialdesign kdxos_curation kdxos_vistools
 
 # kdxos_main is last
 KDX_DIRS=$(KDX_LIBS) kdxos_main
