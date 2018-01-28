@@ -1,0 +1,3 @@
+com.diversityarrays.kdxplore.heatmap.HeatMapVisualisationToolService
+com.diversityarrays.kdxplore.scatterplot.ScatterPlotVisualisationToolService
+com.diversityarrays.kdxplore.boxplot.BoxPlotVisualisationToolService
