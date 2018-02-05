@@ -40,7 +40,7 @@ KDX_JARS=kdxos_clientlib.jar \
 	kdxos_common.jar \
 	kdx_database.jar \
 	kdx_gtools.jar \
-	kdx_ttools.jar \
+	kdxos_ttools.jar \
 	ssupport.jar \
 	dalclient-core.jar \
 	swingx-all-1.6.4.jar \

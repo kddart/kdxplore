@@ -22,7 +22,7 @@ MAKE_SILENT=-s
 
 KDX_LIBS=kdxos_clientlib kdxos_common kdxos_stats kdxos_ttools kdxos_curcommon
 
-KDXAPPS=kdxapp_welcome kdxapp_trialmgr kdxapp_trialdesign kdxos_curation kdxos_vistools
+KDXAPPS=kdxapp_welcome kdxapp_trialmgr kdxos_curation kdxos_vistools kdxapp_trialdesign
 
 # kdxos_main is last
 KDX_DIRS=$(KDX_LIBS) kdxos_main

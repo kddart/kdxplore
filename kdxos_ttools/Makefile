@@ -31,10 +31,12 @@ LIB_JARS=collections-generic-4.01.jar \
 	zxing-core.jar \
 	zxing-javase.jar \
 	wizard.jar \
+	ormlite-core-4.48.jar \
+	javax.persistence-2.0.0.jar \
 	kdx_database.jar \
-	kdx_kddart_schbase \
-	kdx_kddart_schema \
-	kdx_kddart_helper
+	kdx_kddart_schbase.jar \
+	kdx_kddart_schema.jar \
+	kdx_kddart_helper.jar
 
 KDX_JARS=kdxos_clientlib.jar kdxos_common.jar
 KDX_JARPATH=$(subst $(SPACE),:,$(patsubst %,$(JAR_DESTDIR)/%,$(KDX_JARS)))
@@ -53,7 +55,7 @@ JAVAC_ARGS=$(JAVAC_DEBUG_FLAG) -d $(CLASSES) \
 		-sourcepath $(subst $(SPACE),:,$(SRCDIRS))
 
 .PHONY: kdxos_ttools.jar
-kdxos_curcommon.jar:
+kdxos_ttools.jar:
 	rm -rf $(CLASSES)
 	mkdir -p $(CLASSES)
 	if javac $(JAVAC_ARGS) `find $(JAVA_SRC) -name '*.java'`; \

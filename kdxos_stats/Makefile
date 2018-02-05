@@ -26,6 +26,7 @@ LIB_JARS=collections-generic-4.01.jar \
 	pearcan-core.jar \
 	ssupport.jar \
 	jfreechart-1.0.19.jar \
+	ormlite-core-4.48.jar \
         kdx_database.jar
 
 KDX_JARS=kdxos_common.jar
